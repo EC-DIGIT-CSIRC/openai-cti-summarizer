@@ -1,25 +1,44 @@
-import os
-
 import openai
-from flask import Flask, redirect, render_template, request, url_for
 
-app = Flask(__name__)
-openai.api_key = os.getenv("OPENAI_API_KEY")
+import uvicorn
+
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
+from pydantic import BaseSettings
 
 
-@app.route("/", methods=("GET", "POST"))
-def index():
-    if request.method == "POST":
-        animal = request.form["animal"]
-        response = openai.Completion.create(
-            model="text-davinci-002",
-            prompt=generate_prompt(animal),
-            temperature=0.6,
-        )
-        return redirect(url_for("index", result=response.choices[0].text))
+class Settings(BaseSettings):
+    OPENAI_API_KEY: str = 'OPENAI_API_KEY'
 
-    result = request.args.get("result")
-    return render_template("index.html", result=result)
+    class Config:
+        env_file = '.env'
+
+settings = Settings()
+openai.api_key = settings.OPENAI_API_KEY
+
+
+app = FastAPI()
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get("/", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.post("/", response_class=HTMLResponse)
+def index(request: Request, animal: str= Form(...)):
+    response = openai.Completion.create(
+        model="text-davinci-002",
+        prompt=generate_prompt(animal),
+        temperature=0.6,
+    )
+    result = response.choices[0].text
+    return templates.TemplateResponse("index.html", {"request": request, "result": result})
 
 
 def generate_prompt(animal):
@@ -33,3 +52,6 @@ Animal: {}
 Names:""".format(
         animal.capitalize()
     )
+
+if __name__ == "__main__":
+    uvicorn.run('app:app', host="localhost", port=5001, reload=True)
