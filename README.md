@@ -1,4 +1,4 @@
-# OpenAI API Quickstart - Python example app
+# OpenAI and FastAPI - Python example app
 
 This is an example pet name generator app used in the OpenAI API [quickstart tutorial](https://beta.openai.com/docs/quickstart). It uses the [FastAPI](https://fastapi.tiangolo.com/) web framework. 
 
