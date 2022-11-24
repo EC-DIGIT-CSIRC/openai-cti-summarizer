@@ -31,7 +31,7 @@ def index(request: Request):
 
 
 @app.post("/", response_class=HTMLResponse)
-def index(request: Request, animal: str= Form(...)):
+async def index(request: Request, animal: str= Form(...)):
     response = openai.Completion.create(
         model="text-davinci-002",
         prompt=generate_prompt(animal),
