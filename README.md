@@ -17,13 +17,13 @@ This is an example pet name generator app used in the OpenAI API [quickstart tut
 4. Create a new virtual environment
 
    ```bash
-   Linux
+   # Linux
    $ python -m venv venv
    $ . venv/bin/activate
    ```
 
    ```shell
-   # Window
+   # Windows
    python -m venv venv
    venv\Scripts\activate
    ```
@@ -42,7 +42,7 @@ This is an example pet name generator app used in the OpenAI API [quickstart tut
    ```
 
    ```shell
-   # Window
+   # Windows
    xcopy .env.example .env
    ```
 
