@@ -56,7 +56,7 @@ async def index(request: Request, text : str= Form(...)):
         if settings.DRY_RUN:
             result = response
         else:
-            result = response.choices[0].text
+            result = response.choices[0].text       # type: ignore
         print(f"response = '{response}'")
     except Exception as e:
         raise HTTPException(status_code = 500, detail=str(e))
@@ -64,7 +64,7 @@ async def index(request: Request, text : str= Form(...)):
 
 
 def generate_prompt(text: str):
-    prompt: str = f"""Summarize the following Cyber Threat Intelligence report for high level IT manager, focus on the facts and connections to geopolitics level which might be relevant for the European Union: '''{text}''' """
+    prompt: str = f"""Summarize the following Cyber Threat Intelligence report for high level IT managers. Focus on the facts and geopolitics which might be relevant for the European Union: '''{text}''' """
     text = prompt + text
     text = re.sub('\n', ' ', text)
     text = re.sub('\s+', ' ', text)
