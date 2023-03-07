@@ -2,21 +2,54 @@
 <html>
   <head>
     <title>OpenAI Quickstart</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <link
       rel="shortcut icon"
-      href="{{ url_for('static', path='/dog.png') }}"
+      href="{{ url_for('static', path='/quote-150x150.png') }}"
     />
     <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
+	<script>
+		function enableSubmit() {
+			var checkBox = document.getElementById("accepted_limitations");
+			var button = document.getElementById("submit_button");
+			if (checkBox.checked == true){
+				button.disabled = false;
+			} else {
+				button.disabled = true;
+			}
+		}
+	</script>
+	<style>
+      #submit_button {
+        background-color: grey;
+        color: white;
+      }
+
+      #submit_button:enabled {
+        background-color: #10a37f;
+      }
+    </style>
   </head>
   <body>
-    <img src="{{ url_for('static', path='/dog.png') }}" class="icon" />
-    <h3>Name my pet</h3>
-    <form action="/" method="post">
-      <input type="text" name="animal" placeholder="Enter an animal" autocomplete="off" required />
-      <input type="submit" value="Generate names" />
-    </form>
-    {% if result %}
-    <div class="result">{{ result }}</div>
-    {% endif %}
+    <div class="page">
+        <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
+        <h3>Summarize this CTI report</h3>
+        <form action="/" method="post">
+          <div>
+            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
+            &nbsp;
+            <label for="accepted_limitations">I will only submit <a href="https://first.org/tlp">TLP:CLEAR</a> data and I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
+            </p>
+            <input type="textarea" id="text" class="textarea" name="text" placeholder="CTI report goes here" autocomplete="off" required rows="50" cols="80" wrap=1 />
+          </div>
+          <div>
+            <input type="submit" id="submit_button" value="Generate summary" disabled />
+          </div>
+        </form>
+        {% if result %}
+        <div class="result">{{ result }}</div>
+        {% endif %}
+      </div>
   </body>
 </html>

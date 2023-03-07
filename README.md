@@ -1,6 +1,13 @@
-# OpenAI and FastAPI - Python example app
+# OpenAI and FastAPI - Text summarization 
 
-This is an example pet name generator app used in the OpenAI API [quickstart tutorial](https://beta.openai.com/docs/quickstart). It uses the [FastAPI](https://fastapi.tiangolo.com/) web framework. 
+This code is losely based on [Oikosohn's](https://github.com/oikosohn/openai-quickstart-fastapi) openai quickstart fastapi repo, which in turn was based on [openai-quickstart-python](https://github.com/openai/openai-quickstart-python).
+
+
+It uses the OpenAI API [quickstart tutorial](https://beta.openai.com/docs/quickstart) and the [FastAPI](https://fastapi.tiangolo.com/) web framework. 
+
+With prompt engineering, we ask openai's gpt-3 model to summarize a CTI text for management.
+
+
 
 ## Setup
 
@@ -11,7 +18,7 @@ This is an example pet name generator app used in the OpenAI API [quickstart tut
 3. Navigate into the project directory
 
    ```bash
-   $ cd openai-quickstart-fastapi
+   $ cd openai-cti-summarizer
    ```
 
 4. Create a new virtual environment
@@ -47,21 +54,20 @@ This is an example pet name generator app used in the OpenAI API [quickstart tut
    ```
 
 7. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file
+   *Note*: when coding, you might want to not send a request to openai for every page reload. In that case, set `DRY_RUN=1` in `.env`.
 
 8. Run the app
 
    ```bash
-   $ python app.py
+   $ uvicorn --reload --port=5001 --host=0.0.0.0 app:app
    ```
    
-   ![demo](https://user-images.githubusercontent.com/59533593/173504130-6b36bad6-267a-45b2-96b9-14abe9493ad1.gif)
    
 You should now be able to access the app at [http://localhost:5001](http://localhost:5001)! 
 
-This repogitory is based on the Flask code at [openai-quickstart-python](https://github.com/openai/openai-quickstart-python). For the full context behind Flask app, check out the [Flask tutorial](https://beta.openai.com/docs/quickstart).
 
 ## Reference
 
 - [openai/openai-quickstart-python](https://github.com/openai/openai-quickstart-python)
-
+- [Oikosohn's fastapi openai demo](https://github.com/oikosohn/openai-quickstart-fastapi)
 
