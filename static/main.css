@@ -57,15 +57,17 @@ input[type="text"] {
 }
 /* input [type="textarea"] { */
 .textarea {
-  padding: 24px 32px;
+  /* padding: 24px 32px; */
+  resize: none;
   border: 1px solid #10a37f;
   border-radius: 4px;
-  margin-top: 48px;
-  margin-bottom: 48px;
+  margin-top: 32px;
+  margin-bottom: 32px;
   width: 100%;
-  height: 400px;
-  /* box-sizing: border-box;  */
-  box-sizing: content-box;
+  height: 30px;  
+  box-sizing: border-box;
+  overflow: auto;
+  /* box-sizing: content-box; */
 }
 ::placeholder {
   color: #8e8ea0;
@@ -81,7 +83,7 @@ input[type="submit"] {
   cursor: pointer;
 }
 .result {
-  font-weight: bold;
+  font-weight: italic;
   margin-top: 40px;
   width: 800px;
   display: flex;

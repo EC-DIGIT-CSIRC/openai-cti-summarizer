@@ -64,7 +64,7 @@ async def index(request: Request, text : str= Form(...)):
 
 
 def generate_prompt(text: str):
-    prompt: str = f"""Summarize the following Cyber Threat Intelligence report for high level IT managers. Focus on the facts and geopolitics which might be relevant for the European Union: '''{text}''' """
+    prompt: str = f"""Summarize the following Cyber Threat Intelligence report for high level IT managers. Focus on the facts and geopolitics which might be relevant for the European Union, the EU Commission or other EU Institutions, Bodies and agencies: '''{text}'''"""
     text = prompt + text
     text = re.sub('\n', ' ', text)
     text = re.sub('\s+', ' ', text)

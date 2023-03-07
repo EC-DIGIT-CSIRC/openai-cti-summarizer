@@ -41,7 +41,7 @@
             &nbsp;
             <label for="accepted_limitations">I will only submit <a href="https://first.org/tlp">TLP:CLEAR</a> data and I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
             </p>
-            <input type="textarea" id="text" class="textarea" name="text" placeholder="CTI report goes here" autocomplete="off" required rows="50" cols="80" wrap=1 />
+            <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80" placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
           </div>
           <div>
             <input type="submit" id="submit_button" value="Generate summary" disabled />
@@ -49,6 +49,9 @@
         </form>
         {% if result %}
         <div class="result">{{ result }}</div>
+        {% endif %}
+        {% if metainfo %}
+        <div class="metainfo">{{ metainfo }}</div>
         {% endif %}
       </div>
   </body>
