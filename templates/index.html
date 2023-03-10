@@ -11,9 +11,11 @@
     <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
 	<script>
 		function enableSubmit() {
-			var checkBox = document.getElementById("accepted_limitations");
+			var checkBox_tlp = document.getElementById("accepted_tlp");
+			var checkBox_limitations = document.getElementById("accepted_limitations");
 			var button = document.getElementById("submit_button");
-			if (checkBox.checked == true){
+
+			if (checkBox_tlp.checked  && checkBox_limitations.checked){
 				button.disabled = false;
 			} else {
 				button.disabled = true;
@@ -30,6 +32,17 @@
         background-color: #10a37f;
       }
     </style>
+	<style type="text/css">
+		.table-tlp{width:100%;max-width:70em;border:0.5px solid #666;}
+		.table-tlp td {padding: 0.5em;line-height:1.5em;border:0.5px solid #666;background:#eeeeee;}
+		.table-tlp .bg-blue {background:#dbe5f1}
+		.table-tlp .bg-green {background:#ebf1dd}
+		.table-tlp .bg-amber {background:#fdeada}
+		strong.tlp-clear, span.tlp-clear {font-size: 1.25em;display: inline-block;padding-left: .15em;padding-right: .15em;}
+		strong.tlp-clear, span.tlp-clear, .tlp-clear .tlp, .tlp-clear .tlp::before {color: #fff;background: #000;}
+		strong.tlp-red, span.tlp-red, .tlp-red .tlp, .tlp-red .tlp::before {color: #FF2B2B !important;}
+		.tlp-white .tlp::before, .tlp-white.icon::before {content: ' TLP:CLEAR ';white-space:pre;font-weight:bold;}
+	</style>
   </head>
   <body>
     <div class="page">
@@ -37,9 +50,13 @@
         <h3>Summarize this CTI report</h3>
         <form action="/" method="post">
           <div>
-            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
+            <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
             &nbsp;
-            <label for="accepted_limitations">I will only submit <a href="https://first.org/tlp">TLP:CLEAR</a> data and I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
+			<label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR </strong></a> data, ... and</label><p/>
+			<!-- another checkbox -->
+            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
+			&nbsp;
+			<label for="accepted_limitations">I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
             </p>
             <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80" placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
           </div>
