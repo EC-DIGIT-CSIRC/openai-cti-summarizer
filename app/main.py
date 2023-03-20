@@ -65,7 +65,7 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
                 # prompt=generate_prompt(text),     # this is the way we did it in GPT-3
                 messages = messages,
                 temperature=0.7,
-                max_tokens=500,
+                max_tokens=700,
                 n = 1,
             )
         if settings.DRY_RUN:
