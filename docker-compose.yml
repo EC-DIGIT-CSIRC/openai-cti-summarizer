@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3"
 services:
   # The main microservice, serving the OpenAI summarizer
   #
@@ -7,9 +7,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      network: host
     environment:
       PYTHON_PATH: /app
       DRY_RUN: false
     ports:
       - "9999:9999"
+    dns: 8.8.8.8
+    network_mode: host
