@@ -14,6 +14,9 @@ import openai
 
 from app.misc import LORE_IPSUM
 
+model = 'gpt-4'
+model = 'text-davinci-003'
+
 
 class Settings(BaseSettings):
     OPENAI_API_KEY: str = 'OPENAI_API_KEY'
@@ -52,7 +55,7 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
             # response = openai.ChatCompletion.create(          # this is used for the gpt-3.5-turbo model...
             response = openai.Completion.create(
                 # model="text-davinci-002",
-                model="text-davinci-003",
+                model=model,
                 # model="gpt-3.5-turbo",      #  for chat...
                 prompt=generate_prompt(text),
                 temperature=0.1,
