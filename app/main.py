@@ -12,7 +12,7 @@ from pydantic import BaseSettings
 
 import openai
 
-from misc import LORE_IPSUM
+from app.misc import LORE_IPSUM
 
 
 class Settings(BaseSettings):
@@ -37,7 +37,12 @@ def get_index(request: Request):
 
 
 @app.post("/", response_class=HTMLResponse)
-async def index(request: Request, text : str= Form(...)):
+async def index(request: Request,  text : str= Form(...), API_KEY: str = settings.OPENAI_API_KEY):
+    
+    if API_KEY:
+        openai.api_key = API_KEY
+    else:
+        openai.api_key = settings.OPENAI_API_KEY
     try:
         if settings.DRY_RUN:
             response = "This is a sample response, we are in dry-run mode. We don't want to waste money for querying the API." + \
@@ -71,4 +76,4 @@ def generate_prompt(text: str):
     return text
 
 if __name__ == "__main__":
-    uvicorn.run('app:app', host="localhost", port=5001, reload=True)
+    uvicorn.run('main:app', host="localhost", port=9999, reload=True)

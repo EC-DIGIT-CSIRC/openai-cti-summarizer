@@ -50,10 +50,14 @@
         <h3>Summarize this CTI report</h3>
         <form action="/" method="post">
           <div>
+            <label for="api-key">API Key:</label>
+		    <input type="text" id="api-key" name="api_key" style="color: #ccc;" placeholder="Enter your API key" autocomplete="off" value="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"></input>
+          </div>
+          <div>
             <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
             &nbsp;
-			<label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR </strong></a> data, ... and</label><p/>
-			<!-- another checkbox -->
+            <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR </strong></a> data, ... and</label><p/>
+            <!-- another checkbox -->
             <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
 			&nbsp;
 			<label for="accepted_limitations">I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>

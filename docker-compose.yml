@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  # The main microservice, serving the OpenAI summarizer
+  #
+  openai-summarizer:
+    image: openai-summarizer:0.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+      network: host
+    environment:
+      PYTHON_PATH: /app
+      DRY_RUN: false
+    ports:
+      - "9999:9999"
