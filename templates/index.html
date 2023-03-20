@@ -49,9 +49,9 @@
         <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
         <h3>Summarize this CTI report</h3>
         <form action="/" method="post">
-          <div>
+          <div class="is-size-7">
             <label for="api-key">API Key:</label>
-		    <input type="text" id="api-key" name="api_key" style="color: #ccc;" placeholder="Enter your API key" autocomplete="off" value="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"></input>
+		        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #ccc;" placeholder="Enter your API key" autocomplete="off" value="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"></input>
           </div>
           <div>
             <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
