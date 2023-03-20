@@ -14,9 +14,9 @@ import openai
 
 from app.misc import LORE_IPSUM
 
-model = 'gpt-4'
 model = "gpt-3.5-turbo",      #  for chat...
 model = 'text-davinci-003'
+model = 'gpt-4'
 
 
 class Settings(BaseSettings):
@@ -53,12 +53,17 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
                 LORE_IPSUM
             print(response)
         else:
-            # response = openai.ChatCompletion.create(          # this is used for the gpt-3.5-turbo model...
-            response = openai.Completion.create(
+            messages=[{"role": "system", "content": "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management"},
+                {"role": "user", "content": text}
+            ]
+
+            response = openai.ChatCompletion.create(          # this is used for the gpt-3.5-turbo as well as GPT-4 model...
                 model=model,
-                prompt=generate_prompt(text),
+                # prompt=generate_prompt(text),     # this is the way we did it in GPT-3
+                messages = messages,
                 temperature=0.7,
                 max_tokens=500,
+                n = 1,
             )
         if settings.DRY_RUN:
             result = response
@@ -66,8 +71,9 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
             result = response.choices[0].text       # type: ignore
         print(f"response = '{response}'")
     except Exception as e:
-        raise HTTPException(status_code = 500, detail=str(e))
-    return templates.TemplateResponse("index.html", {"request": request, "result": result})
+        return templates.TemplateResponse("index.html", { "request": request, "result": str(e), "success": False}, status_code=400)
+        # raise HTTPException(status_code = 500, detail=str(e))
+    return templates.TemplateResponse("index.html", {"request": request, "result": result, "success": True})
 
 
 def generate_prompt(text: str):

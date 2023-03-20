@@ -68,12 +68,25 @@
             <input type="submit" id="submit_button" value="Generate summary" disabled />
           </div>
         </form>
+        <p/>&nbsp;<p/>
         {% if result %}
-        <div class="result">{{ result }}</div>
+        {% if success %}
+        <article class="message is-success">
+        {% else %}
+        <article class="message is-danger">
+        {% endif %}
+          <div class="message-header">
+            <p>Results:</p>
+          </div>
+          <div class="message-body">
+            {{ result }}
+          </div>
+        </article>
         {% endif %}
         {% if metainfo %}
         <div class="metainfo">{{ metainfo }}</div>
         {% endif %}
+        <p/>&nbsp;<p/>
       </div>
   </body>
 </html>
