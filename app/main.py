@@ -35,9 +35,9 @@ async def index(request: Request, text: str = Form(...), API_KEY: str = Form(Non
         result, error = summarizer.summarize(text)
 
     if error:
-        return templates.TemplateResponse("summary.html", {"request": request, "result": error, "success": False}, status_code=400)
+        return templates.TemplateResponse("index.html", {"request": request, "result": error, "success": False}, status_code=400)
     
-    return templates.TemplateResponse("summary.html", {"request": request, "result": result, "success": True})
+    return templates.TemplateResponse("index.html", {"request": request, "result": result, "success": True, "api_key": summarizer.API_KEY, "model": model, "word_count": word_count})
 
 if __name__ == "__main__":
     uvicorn.run('main:app', host="localhost", port=9999, reload=True)

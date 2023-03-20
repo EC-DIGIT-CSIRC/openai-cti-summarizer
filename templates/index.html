@@ -4,7 +4,6 @@
 <head>
   <title>OpenAI Quickstart</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <script src="https://unpkg.com/htmx.org@1.8.6"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
@@ -93,7 +92,7 @@
   <div class="page">
     <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
     <h3>Summarize this CTI report</h3>
-    <form hx-post="/" hx-target="#results">      
+    <form action="/" method="post">
       {% if not api_key %}
       <div class="is-size-7">
         <label for="api-key">API Key:</label>
@@ -124,7 +123,7 @@
             <select id="model" name="model">
               <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
               <option value="gpt-4">gpt-4</option>
-              <option value="gpt-4-32k">gpt-4-32k</option>
+			  <!-- <option value="gpt-4-32k">gpt-4-32k</option> -- GPT-4-32k does not exist yet -->
             </select>
           </div>
         </div>
@@ -144,18 +143,32 @@
     </form>
     <p />&nbsp;
     <p />
-      <div id="results">
-
-      </div>
+    {% if result %}
+    {% if success %}
+    <article class="message is-success">
+      {% else %}
+      <article class="message is-danger">
+        {% endif %}
+        <div class="message-header">
+          <p>Results:</p>
+        </div>
+        <div class="message-body">
+          {{ result }}
+        </div>
+      </article>
+      {% endif %}
+      {% if metainfo %}
+      <div class="metainfo">{{ metainfo }}</div>
+      {% endif %}
       <p />&nbsp;
       <p />
   </div>
 </body>
 <script>
-  const wordCountSlider = document.getElementById("word_count");
-  const wordCountValue = document.getElementById("word_count_value");
-  wordCountSlider.oninput = function() {
-      wordCountValue.innerHTML = this.value;
-  }
+    const wordCountSlider = document.getElementById("word_count");
+    const wordCountValue = document.getElementById("word_count_value");
+    wordCountSlider.oninput = function() {
+        wordCountValue.innerHTML = this.value;
+    }
 </script>
 </html>
