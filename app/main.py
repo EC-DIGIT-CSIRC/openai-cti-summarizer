@@ -11,12 +11,14 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseSettings
 
 import openai
+import openai.error
 
 from app.misc import LORE_IPSUM
 
-model = "gpt-3.5-turbo",      #  for chat...
-model = 'text-davinci-003'
+model = "gpt-3.5-turbo",        #  for chat...
+model = 'text-davinci-003'      # the default GPT-3 model (text completion)
 model = 'gpt-4'
+# model = 'gpt-4-32k'           # 32k token access should come later
 
 
 class Settings(BaseSettings):
@@ -53,7 +55,8 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
                 LORE_IPSUM
             print(response)
         else:
-            messages=[{"role": "system", "content": "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management"},
+            messages=[
+                {"role": "system", "content": "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management"},
                 {"role": "user", "content": text}
             ]
 
@@ -68,12 +71,17 @@ async def index(request: Request,  text : str= Form(...), API_KEY: str = setting
         if settings.DRY_RUN:
             result = response
         else:
-            result = response.choices[0].text       # type: ignore
+            result = response.choices[0].message.content       # type: ignore
         print(f"response = '{response}'")
+    except openai.error.OpenAIError as e: 
+        #Handle API error here, e.g. retry or log
+        print(f"OpenAI API returned an API Error: {e}")
+        return templates.TemplateResponse("index.html", { "request": request, "result": e, "success": False}, status_code=400)
     except Exception as e:
+        print(f"Unknown error! Error = '{str(e)}'")
         return templates.TemplateResponse("index.html", { "request": request, "result": str(e), "success": False}, status_code=400)
         # raise HTTPException(status_code = 500, detail=str(e))
-    return templates.TemplateResponse("index.html", {"request": request, "result": result, "success": True})
+    return templates.TemplateResponse("index.html", {"request": request, "result": result, "success": True, "api_key": API_KEY })
 
 
 def generate_prompt(text: str):
