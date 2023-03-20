@@ -1,92 +1,161 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>OpenAI Quickstart</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link
-      rel="shortcut icon"
-      href="{{ url_for('static', path='/quote-150x150.png') }}"
-    />
-    <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
-	<script>
-		function enableSubmit() {
-			var checkBox_tlp = document.getElementById("accepted_tlp");
-			var checkBox_limitations = document.getElementById("accepted_limitations");
-			var button = document.getElementById("submit_button");
 
-			if (checkBox_tlp.checked  && checkBox_limitations.checked){
-				button.disabled = false;
-			} else {
-				button.disabled = true;
-			}
-		}
-	</script>
-	<style>
-      #submit_button {
-        background-color: grey;
-        color: white;
-      }
+<head>
+  <title>OpenAI Quickstart</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <script src="https://unpkg.com/htmx.org@1.8.6"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
+  <script>
+    function enableSubmit() {
+      var checkBox_tlp = document.getElementById("accepted_tlp");
+      var checkBox_limitations = document.getElementById("accepted_limitations");
+      var button = document.getElementById("submit_button");
 
-      #submit_button:enabled {
-        background-color: #10a37f;
+      if (checkBox_tlp.checked && checkBox_limitations.checked) {
+        button.disabled = false;
+      } else {
+        button.disabled = true;
       }
-    </style>
-	<style type="text/css">
-		.table-tlp{width:100%;max-width:70em;border:0.5px solid #666;}
-		.table-tlp td {padding: 0.5em;line-height:1.5em;border:0.5px solid #666;background:#eeeeee;}
-		.table-tlp .bg-blue {background:#dbe5f1}
-		.table-tlp .bg-green {background:#ebf1dd}
-		.table-tlp .bg-amber {background:#fdeada}
-		strong.tlp-clear, span.tlp-clear {font-size: 1.25em;display: inline-block;padding-left: .15em;padding-right: .15em;}
-		strong.tlp-clear, span.tlp-clear, .tlp-clear .tlp, .tlp-clear .tlp::before {color: #fff;background: #000;}
-		strong.tlp-red, span.tlp-red, .tlp-red .tlp, .tlp-red .tlp::before {color: #FF2B2B !important;}
-		.tlp-white .tlp::before, .tlp-white.icon::before {content: ' TLP:CLEAR ';white-space:pre;font-weight:bold;}
-	</style>
-  </head>
-  <body>
-    <div class="page">
-        <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
-        <h3>Summarize this CTI report</h3>
-        <form action="/" method="post">
-          <div class="is-size-7">
-            <label for="api-key">API Key:</label>
-		        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #ccc;" placeholder="Enter your API key" autocomplete="off" value="{% if api_key %}{{ api_key }}{% endif %}"></input>
-          </div>
-          <div>
-            <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
-            &nbsp;
-            <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR </strong></a> data, ... and</label><p/>
-            <!-- another checkbox -->
-            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
-			&nbsp;
-			<label for="accepted_limitations">I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
-            </p>
-            <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80" placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
-          </div>
-          <div>
-            <input type="submit" id="submit_button" value="Generate summary" disabled />
-          </div>
-        </form>
-        <p/>&nbsp;<p/>
-        {% if result %}
-        {% if success %}
-        <article class="message is-success">
-        {% else %}
-        <article class="message is-danger">
-        {% endif %}
-          <div class="message-header">
-            <p>Results:</p>
-          </div>
-          <div class="message-body">
-            {{ result }}
-          </div>
-        </article>
-        {% endif %}
-        {% if metainfo %}
-        <div class="metainfo">{{ metainfo }}</div>
-        {% endif %}
-        <p/>&nbsp;<p/>
+    }
+  </script>
+  <style>
+    #submit_button {
+      background-color: grey;
+      color: white;
+    }
+
+    #submit_button:enabled {
+      background-color: #10a37f;
+    }
+  </style>
+  <style type="text/css">
+    .table-tlp {
+      width: 100%;
+      max-width: 70em;
+      border: 0.5px solid #666;
+    }
+
+    .table-tlp td {
+      padding: 0.5em;
+      line-height: 1.5em;
+      border: 0.5px solid #666;
+      background: #eeeeee;
+    }
+
+    .table-tlp .bg-blue {
+      background: #dbe5f1
+    }
+
+    .table-tlp .bg-green {
+      background: #ebf1dd
+    }
+
+    .table-tlp .bg-amber {
+      background: #fdeada
+    }
+
+    strong.tlp-clear,
+    span.tlp-clear {
+      font-size: 1.25em;
+      display: inline-block;
+      padding-left: .15em;
+      padding-right: .15em;
+    }
+
+    strong.tlp-clear,
+    span.tlp-clear,
+    .tlp-clear .tlp,
+    .tlp-clear .tlp::before {
+      color: #fff;
+      background: #000;
+    }
+
+    strong.tlp-red,
+    span.tlp-red,
+    .tlp-red .tlp,
+    .tlp-red .tlp::before {
+      color: #FF2B2B !important;
+    }
+
+    .tlp-white .tlp::before,
+    .tlp-white.icon::before {
+      content: ' TLP:CLEAR ';
+      white-space: pre;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+    <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
+    <h3>Summarize this CTI report</h3>
+    <form hx-post="/" hx-target="#results">      
+      {% if not api_key %}
+      <div class="is-size-7">
+        <label for="api-key">API Key:</label>
+        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #ccc;"
+          placeholder="Enter your API key" autocomplete="off" value="{% if api_key %}{{ api_key }}{% endif %}"></input>
       </div>
-  </body>
+      {% endif %}
+      <div class="is-size-7">
+        <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
+        &nbsp;
+        <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR
+            </strong></a> data, ... and</label>
+        <p />
+        <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
+        &nbsp;
+        <label for="accepted_limitations">I accept the <a
+            href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
+        </p>
+
+        <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80"
+          placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
+      </div>
+
+      <div class="field">
+        <label class="label" for="model">Model:</label>
+        <div class="control">
+          <div class="select">
+            <select id="model" name="model">
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+              <option value="gpt-4">gpt-4</option>
+              <option value="gpt-4-32k">gpt-4-32k</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="word_count">Summarize in (100-1000) words:</label>
+        <div class="control">
+          <input id="word_count" name="word_count" class="slider" step="10" min="100" max="1000" value="100"
+            type="range">
+        </div>
+        <div id="word_count_value">100</div>
+      </div>
+
+      <div>
+        <input type="submit" id="submit_button" value="Generate summary" disabled />
+      </div>
+    </form>
+    <p />&nbsp;
+    <p />
+      <div id="results">
+
+      </div>
+      <p />&nbsp;
+      <p />
+  </div>
+</body>
+<script>
+  const wordCountSlider = document.getElementById("word_count");
+  const wordCountValue = document.getElementById("word_count_value");
+  wordCountSlider.oninput = function() {
+      wordCountValue.innerHTML = this.value;
+  }
+</script>
 </html>
