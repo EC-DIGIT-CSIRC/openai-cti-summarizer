@@ -5,43 +5,20 @@ This code is losely based on [Oikosohn's](https://github.com/oikosohn/openai-qui
 
 It uses the OpenAI API [quickstart tutorial](https://beta.openai.com/docs/quickstart) and the [FastAPI](https://fastapi.tiangolo.com/) web framework. 
 
-With prompt engineering, we ask openai's gpt-3 model to summarize a CTI text for management.
+With prompt engineering, we ask openai's gpt-4 model to summarize a CTI text for upper management.
 
+**Note**: you will have to get your own API key for this.
 
 
 ## Setup
 
-1. If you don’t have Python installed, [install it from here](https://www.python.org/downloads/)
+1. First build the image:
 
-2. Clone this repository
+```bash
+docker build -t openai-summarizer:0.1 . --network=host
+```
 
-3. Navigate into the project directory
-
-   ```bash
-   $ cd openai-cti-summarizer
-   ```
-
-4. Create a new virtual environment
-
-   ```bash
-   # Linux
-   $ python -m venv venv
-   $ . venv/bin/activate
-   ```
-
-   ```shell
-   # Windows
-   python -m venv venv
-   venv\Scripts\activate
-   ```
-
-5. Install the requirements
-
-   ```bash
-   $ pip install -r requirements.txt
-   ```
-
-6. Make a copy of the example environment variables file
+2. Make a copy of the example environment variables file
 
    ```bash
    # Linux
@@ -53,17 +30,18 @@ With prompt engineering, we ask openai's gpt-3 model to summarize a CTI text for
    xcopy .env.example .env
    ```
 
-7. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file
+3. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file
    *Note*: when coding, you might want to not send a request to openai for every page reload. In that case, set `DRY_RUN=1` in `.env`.
 
-8. Run the app
+
+8. Run the dockerized app
 
    ```bash
-   $ uvicorn --reload --port=5001 --host=0.0.0.0 app:app
+   $  docker compose --env-file .env up -d
    ```
    
    
-You should now be able to access the app at [http://localhost:5001](http://localhost:5001)! 
+You should now be able to access the app at [http://localhost:9999](http://localhost:9999)! 
 
 
 ## Reference
