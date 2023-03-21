@@ -12,13 +12,7 @@ With prompt engineering, we ask openai's gpt-4 model to summarize a CTI text for
 
 ## Setup
 
-1. First build the image:
-
-```bash
-docker build -t openai-summarizer:0.1 . --network=host
-```
-
-2. Make a copy of the example environment variables file
+1. First make a copy of the example environment variables file
 
    ```bash
    # Linux
@@ -30,17 +24,26 @@ docker build -t openai-summarizer:0.1 . --network=host
    xcopy .env.example .env
    ```
 
-3. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file
+2. Add your [API key](https://beta.openai.com/account/api-keys) to the newly created `.env` file
    *Note*: when coding, you might want to not send a request to openai for every page reload. In that case, set `DRY_RUN=1` in `.env`.
 
 
-8. Run the dockerized app
+3. Then build the image:
+
+```bash
+docker build -t openai-summarizer:0.1 . --network=host
+```
+
+(The .env file will be copied into the image as well)
+
+
+4. Run the dockerized app
 
    ```bash
-   $  docker compose --env-file .env up -d
+   $  docker compose up -d
    ```
    
-   
+
 You should now be able to access the app at [http://localhost:9999](http://localhost:9999)! 
 
 
