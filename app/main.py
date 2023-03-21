@@ -3,8 +3,9 @@ from fastapi import FastAPI, Request, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from .summarizer import Summarizer
-from .settings import Settings
+import markdown
+from app.summarizer import Summarizer
+from app.settings import Settings
 
 settings = Settings()
 
@@ -36,7 +37,8 @@ async def index(request: Request, text: str = Form(...), API_KEY: str = Form(Non
 
     if error:
         return templates.TemplateResponse("index.html", {"request": request, "result": error, "success": False}, status_code=400)
-    
+
+    result = markdown.markdown(result)
     return templates.TemplateResponse("index.html", {"request": request, "result": result, "success": True, "api_key": summarizer.API_KEY, "model": model, "word_count": word_count})
 
 if __name__ == "__main__":
