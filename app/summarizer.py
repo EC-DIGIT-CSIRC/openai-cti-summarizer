@@ -4,7 +4,7 @@ from typing import Tuple
 
 class Summarizer:
     def __init__(self, API_KEY: str, model: str, max_tokens: int):
-        self.base_prompt = "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management"
+        self.base_prompt = "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management. The report shall be nicely formatted with two sections: one Executive Summary section and one 'TTPs and IoCs' section. The second section shall list all IP addresses, domains, URLs, tools and hashes (sha-1, sha256, md5, etc.) which can be found in the report. Nicely format the report as markdown. Use newlines between markdown headings."
         self.API_KEY = API_KEY
         self.model = model
         self.max_tokens = max_tokens
