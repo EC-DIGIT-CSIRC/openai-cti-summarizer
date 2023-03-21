@@ -7,13 +7,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', path='/markdown-styles.css') }}" />
   <script>
     function enableSubmit() {
       var checkBox_tlp = document.getElementById("accepted_tlp");
       var checkBox_limitations = document.getElementById("accepted_limitations");
+      var checkBox_fact_check = document.getElementById("accepted_need_to_fact_check");
       var button = document.getElementById("submit_button");
 
-      if (checkBox_tlp.checked && checkBox_limitations.checked) {
+      if (checkBox_tlp.checked && checkBox_limitations.checked && checkBox_fact_check) {
         button.disabled = false;
       } else {
         button.disabled = true;
@@ -111,7 +113,11 @@
         <label for="accepted_limitations">I accept the <a
             href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
         </p>
-
+        <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check" onclick="enableSubmit()" />
+        &nbsp;
+        <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated report</b></label>
+        </p>
+        <!-- main textarea -->
         <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80"
           placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
       </div>
@@ -152,8 +158,8 @@
         <div class="message-header">
           <p>Results:</p>
         </div>
-        <div class="message-body">
-          {{ result }}
+        <div class="message-body markdown">
+          {{ result|safe }}
         </div>
       </article>
       {% endif %}
