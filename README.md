@@ -22,7 +22,7 @@ docker build -t openai-summarizer:0.1 . --network=host
 
    ```bash
    # Linux
-   $ cp .env.example .env
+   $ cp env.example .env
    ```
 
    ```shell
