@@ -1,5 +1,20 @@
 # OpenAI and FastAPI - Text summarization 
 
+This text summarizer is a web based frontend for summarising (Cyber Threat Intelligence]() (CTI) reports.
+It uses OpenAI's GPT3.5 and GPT4 API to generate meaningful summaries for management as well as for extracting IP addresses, domains, URLs, hashes etc from a CTI report.
+
+Input:
+
+![Example of a (public) Blog CTI blog post](static/text-example.png)
+
+
+Output:
+
+![Example a GPT4 generated summary](static/summary-example.png)
+
+
+
+
 This code is losely based on [Oikosohn's](https://github.com/oikosohn/openai-quickstart-fastapi) openai quickstart fastapi repo, which in turn was based on [openai-quickstart-python](https://github.com/openai/openai-quickstart-python).
 
 
