@@ -7,7 +7,7 @@ security = HTTPBasic()
 
 # fake users to simulate authentication
 fake_users = {
-    "digit": "united we stand, divided we fall!",
+    "digit": "united we stand, divided we fall!",   # XXX FIXME: currently this is intentionally simple and in the code. We will replace this with proper authentication. It's just against bots misusing the service automatically.
 }
 
 # dependency to check if the credentials are valid
