@@ -15,7 +15,7 @@
       var checkBox_fact_check = document.getElementById("accepted_need_to_fact_check");
       var button = document.getElementById("submit_button");
 
-      if (checkBox_tlp.checked && checkBox_limitations.checked && checkBox_fact_check) {
+      if (checkBox_tlp.checked && checkBox_limitations.checked && checkBox_fact_check.checked) {
         button.disabled = false;
       } else {
         button.disabled = true;
