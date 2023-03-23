@@ -15,11 +15,14 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=100)
 
+
 @app.get("/", response_class=HTMLResponse)
-def get_index(request: Request):
+def get_index(request: Request, username: str = Depends(get_current_username)):
     return templates.TemplateResponse("index.html", {"request": request, "api_key": settings.OPENAI_API_KEY})
+
 
 @app.post("/", response_class=HTMLResponse)
 async def index(request: Request, text: str = Form(...), API_KEY: str = Form(None), model: str = Form('gpt-4'), word_count: int = Form(100), username: str = Depends(get_current_username)):
