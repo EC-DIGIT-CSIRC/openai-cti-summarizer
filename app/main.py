@@ -1,11 +1,13 @@
 import uvicorn
-from fastapi import FastAPI, Request, Form, HTTPException
+from fastapi import FastAPI, Request, Form, HTTPException, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 import markdown
 from app.summarizer import Summarizer
 from app.settings import Settings
+from app.auth import get_current_username
+
 
 settings = Settings()
 
@@ -20,7 +22,7 @@ def get_index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request, "api_key": settings.OPENAI_API_KEY})
 
 @app.post("/", response_class=HTMLResponse)
-async def index(request: Request, text: str = Form(...), API_KEY: str = Form(None), model: str = Form('gpt-4'), word_count: int = Form(100)):
+async def index(request: Request, text: str = Form(...), API_KEY: str = Form(None), model: str = Form('gpt-4'), word_count: int = Form(100), username: str = Depends(get_current_username)):
     if API_KEY:
         summarizer.API_KEY = API_KEY
     else:
