@@ -9,7 +9,7 @@ services:
       dockerfile: Dockerfile
     environment:
       PYTHON_PATH: /app
-      DRY_RUN: false
+    env_file: .env
     ports:
       - "9999:9999"
     dns: 8.8.8.8

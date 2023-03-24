@@ -2,7 +2,7 @@
 <html>
 
 <head>
-  <title>Summarize this report via OpenAI</title>
+  <title>Summarize this (via OpenAI)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -101,13 +101,25 @@
   .info-icon:hover .tooltip {
     visibility: visible;
   }
-    </style>
+  
+  .copy-button {
+    background-color: transparent;
+    color: #3273dc;
+    border: none;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .copy-button:hover {
+    background-color: #3273dc;
+    color: #fff;
+  }
+  </style>
 </head>
 
 <body>
   <div class="page">
     <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
-    <h3>Summarize this report</h3>
+    <h3>Summarize this</h3>
     <form action="/" method="post">
       {% if not api_key %}
       <div class="is-size-7">
@@ -121,11 +133,11 @@
         &nbsp;
         <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"> <strong class="tlp-clear">TLP:CLEAR
             </strong></a> data, ... and</label>
-        <p />
+        <p/>
         <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
         &nbsp;
         <label for="accepted_limitations">I accept the <a
-            href="{{ url_for('static', path='/limits.html') }}">limitations</a></label>
+            href="{{ url_for('static', path='/limits.html') }}"><b>limitations</b></a></label>
         </p>
         <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check" onclick="enableSubmit()" />
         &nbsp;
@@ -135,24 +147,26 @@
         <hr/>
       </div>
       <div class="field">
-          <div class="control has-icons-right">
-            <label class="label" for="system-prompt">Base instructions</label>
-            <!--
-            <span class="icon is-right info-icon">
-              <i class="fas fa-info-circle"></i>
-            </span>
-            <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
-            -->
-          </div>
-          &nbsp;
-          <input class="is-size-7" type="text" id="system-prompt" name="system_prompt" style="color: #4c516d; width: 100%;" 
-            placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')" autocomplete="off" 
-            value="{% if system_prompt %}{{ system_prompt }}{% endif %}"></input>
+        <p class="control has-icons-right has-icons-right">
+          <label class="label" for="system-prompt">Base instructions: </label>
+        </p>
+        &nbsp;
+        <p/>
+        <!--
+          <span class="icon is-right info-icon">
+            <i class="fas fa-info-circle"></i>
+          </span>
+          <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
+        -->
+        <input class="is-size-7" type="text" id="system-prompt" name="system_prompt" style="color: #4c516d; width: 100%;" 
+          placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')" autocomplete="off" 
+          value="{% if system_prompt %}{{ system_prompt }}{% endif %}">
+        </input>
       </div>
       <div>
         <!-- main textarea -->
-        <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80"
-          placeholder="The report to be summarized goes here" autocomplete="off" required wrap=1>{% if text %}{{ text }}{% else %}Report text goes here... {% endif %}</textarea>
+        <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
+          placeholder="The report to be summarized goes here" autocomplete="off" required wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
       </div>
 
       <div class="field">
@@ -175,7 +189,6 @@
         </div>
         <div id="word_count_value">500</div>
       </div>
-
       <div>
         <input type="submit" id="submit_button" value="Generate summary" disabled />
       </div>
@@ -188,11 +201,15 @@
       {% else %}
       <article class="message is-danger">
         {% endif %}
-        <div class="message-header">
+        <div class="message-header" style="position: relative;">
           <p>Results:</p>
+          <button class="button is-small copy-button" style="position: absolute; top: 5px; right: 5px; font-style: italic; color: #fff;" onclick="copyToClipboard()">
+            <i class="far fa-copy"></i>&nbsp;Copy to clipboard
+          </button>
         </div>
-        <div class="message-body markdown">
+        <div class="message-body markdown" style="position: relative;">
           {{ result|safe }}
+          <!-- <button class="fa fa-clipboard button copy-button is-small is-pulled-right" aria-hidden="false" onclick="copyToClipboard()"></button> -->
         </div>
       </article>
       {% endif %}
@@ -210,17 +227,28 @@
         wordCountValue.innerHTML = this.value;
     }
 
+    // copy & paste code
+    function copyToClipboard() {
+      const messageBody = document.querySelector('.message-body');
+      const range = document.createRange();
+      range.selectNode(messageBody);
+      window.getSelection().addRange(range);
+      document.execCommand('copy');
+      window.getSelection().removeAllRanges();
+    }
+
     // for the info icon
-    const infoIcon = document.querySelector('.info-icon');
+    const infoIcon = document.querySelector('.icon');
     const tooltip = document.querySelector('.tooltip');
 
-    infoIcon.addEventListener('mouseover', () => {
-      tooltip.style.visibility = 'visible';
+    infoIcon.addEventListener('mouseenter', () => {
+      tooltip.classList.add('is-active');
     });
 
-    infoIcon.addEventListener('mouseout', () => {
-      tooltip.style.visibility = 'hidden';
+    infoIcon.addEventListener('mouseleave', () => {
+      tooltip.classList.remove('is-active');
     });
+</script>
 
 </script>
 </html>
