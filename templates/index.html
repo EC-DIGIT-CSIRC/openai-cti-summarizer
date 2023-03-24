@@ -2,8 +2,9 @@
 <html>
 
 <head>
-  <title>OpenAI Quickstart</title>
+  <title>Summarize this report via OpenAI</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
@@ -87,25 +88,38 @@
       white-space: pre;
       font-weight: bold;
     }
-  </style>
+    .info-icon {
+      position: relative;
+    }
+
+  .tooltip {
+    visibility: hidden;
+    position: absolute;
+    z-index: 1;
+  }
+
+  .info-icon:hover .tooltip {
+    visibility: visible;
+  }
+    </style>
 </head>
 
 <body>
   <div class="page">
     <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
-    <h3>Summarize this CTI report</h3>
+    <h3>Summarize this report</h3>
     <form action="/" method="post">
       {% if not api_key %}
       <div class="is-size-7">
         <label for="api-key">API Key:</label>
-        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #ccc;"
+        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #cccc;"
           placeholder="Enter your API key" autocomplete="off" value="{% if api_key %}{{ api_key }}{% endif %}"></input>
       </div>
       {% endif %}
       <div class="is-size-7">
         <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
         &nbsp;
-        <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"><strong class="tlp-clear">TLP:CLEAR
+        <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"> <strong class="tlp-clear">TLP:CLEAR
             </strong></a> data, ... and</label>
         <p />
         <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
@@ -117,9 +131,28 @@
         &nbsp;
         <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated report</b></label>
         </p>
+        <!-- system prompt -->
+        <hr/>
+      </div>
+      <div class="field">
+          <div class="control has-icons-right">
+            <label class="label" for="system-prompt">Base instructions</label>
+            <!--
+            <span class="icon is-right info-icon">
+              <i class="fas fa-info-circle"></i>
+            </span>
+            <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
+            -->
+          </div>
+          &nbsp;
+          <input class="is-size-7" type="text" id="system-prompt" name="system_prompt" style="color: #4c516d; width: 100%;" 
+            placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')" autocomplete="off" 
+            value="{% if system_prompt %}{{ system_prompt }}{% endif %}"></input>
+      </div>
+      <div>
         <!-- main textarea -->
         <textarea type="textarea" id="text" class="textarea" name="text" rows="10" cols="80"
-          placeholder="CTI report goes here" autocomplete="off" required wrap=1>CTI text goes here... </textarea>
+          placeholder="The report to be summarized goes here" autocomplete="off" required wrap=1>{% if text %}{{ text }}{% else %}Report text goes here... {% endif %}</textarea>
       </div>
 
       <div class="field">
@@ -176,5 +209,18 @@
     wordCountSlider.oninput = function() {
         wordCountValue.innerHTML = this.value;
     }
+
+    // for the info icon
+    const infoIcon = document.querySelector('.info-icon');
+    const tooltip = document.querySelector('.tooltip');
+
+    infoIcon.addEventListener('mouseover', () => {
+      tooltip.style.visibility = 'visible';
+    });
+
+    infoIcon.addEventListener('mouseout', () => {
+      tooltip.style.visibility = 'hidden';
+    });
+
 </script>
 </html>

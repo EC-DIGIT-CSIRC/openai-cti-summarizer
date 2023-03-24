@@ -12,6 +12,7 @@ RUN pip install -r requirements.txt
 
 # copy the main files
 COPY . .
+COPY .env .
 
 # expose the port for the FastAPI application
 EXPOSE 9999
