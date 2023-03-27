@@ -22,7 +22,7 @@ numpy==1.24.2
 openai==0.27.2
 openpyxl==3.1.2
 pandas==1.5.3
-pandas-stubs==1.5.3.230304
+pandas-stubs==1.5.3.230321
 platformdirs==3.1.1
 pydantic==1.10.7
 python-dateutil==2.8.2
