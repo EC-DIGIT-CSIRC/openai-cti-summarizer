@@ -38,7 +38,7 @@ types-pytz==2023.3.0.0
 typing_extensions==4.5.0
 urllib3==1.26.15
 uvicorn==0.21.1
-virtualenv==20.21.0
+virtualenv==20.22.0
 wincertstore==0.2
 yarl==1.8.2
 Markdown==3.4.3
