@@ -17,7 +17,8 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
-summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=500)
+# summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=500)
+summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4-32k', max_tokens=500)
 
 
 @app.get("/", response_class=HTMLResponse)
