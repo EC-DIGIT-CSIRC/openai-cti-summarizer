@@ -3,7 +3,7 @@ import openai.error
 from typing import Tuple
 
 class Summarizer:
-    def __init__(self, API_KEY: str, model: str, max_tokens: int, system_prompt: str = ""):
+    def __init__(self, API_KEY: str, model: str, max_tokens: int, system_prompt: str = "", go_azure: bool = False):
         if system_prompt:
             self.system_prompt = system_prompt
         else:
@@ -11,6 +11,11 @@ class Summarizer:
         self.API_KEY = API_KEY
         self.model = model
         self.max_tokens = max_tokens
+        self.go_azure = go_azure
+        if self.go_azure:
+            openai.api_type = "azure"
+            openai.api_base = "https://devmartiopenai.openai.azure.com/"
+            openai.api_version = "2023-03-15-preview"
         openai.api_key = self.API_KEY
 
     def summarize(self, text: str, system_prompt: str = "") -> Tuple[str, str]:
@@ -25,16 +30,28 @@ class Summarizer:
         # XXX FIXME: work with chunks 
 
         try:
-            response = openai.ChatCompletion.create(
-                model=self.model,
-                messages=messages,
-                temperature=0.7,
-                max_tokens=self.max_tokens, # TODO: Make sure this actually means, summarize in X token
-                n=1,
-
-            )
+            if self.go_azure:
+                response = openai.ChatCompletion.create(
+                    engine="openai-cti-summarizer-depoloyment-1",
+                    messages=messages,
+                    temperature=0.7,
+                    top_p=0.95,
+                    stop=None,
+                    max_tokens=self.max_tokens,     # TODO: Make sure this actually means, summarize in X token
+                    n=1,
+                )
+            else:       # go directly via OpenAI's API
+                response = openai.ChatCompletion.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=0.7,
+                    top_p=0.95,
+                    stop=None,
+                    max_tokens=self.max_tokens,     # TODO: Make sure this actually means, summarize in X token
+                    n=1,
+                )
             result = response.choices[0].message.content
-            error = None    # Or move the error handling back to main.py, not sure
+            error = None            # Or move the error handling back to main.py, not sure
         except openai.error.OpenAIError as e:
             result = None
             error = f"OpenAI API returned an API Error: {e}"
@@ -42,4 +59,4 @@ class Summarizer:
             result = None
             error = f"Unknown error! Error = '{str(e)}'"
 
-        return result, error # type: ignore
+        return result, error        # type: ignore

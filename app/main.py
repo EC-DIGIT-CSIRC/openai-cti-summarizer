@@ -17,8 +17,15 @@ templates = Jinja2Templates(directory="templates")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
+# First detect if we should invoke OpenAI via MS Azure or directly
+try:
+    go_azure = settings.USE_MS_AZURE
+except Exception as e:
+    go_azure = None
+
+
 # summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=500)
-summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4-32k', max_tokens=500)
+summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, go_azure=go_azure, model='gpt-4-32k', max_tokens=500)
 
 
 @app.get("/", response_class=HTMLResponse)
