@@ -21,7 +21,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 try:
     go_azure = settings.USE_MS_AZURE
 except Exception as e:
-    go_azure = None
+    go_azure = False
 
 
 # summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=500)

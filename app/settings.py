@@ -11,5 +11,4 @@ class Settings(BaseSettings):
     API_BASE: str = ""          # only needed in case we need to go via MS Azure.
 
     class Config:
-        env_file = '.env'       # in the docker container, if the .env file is present, take it.
-                                # overwrite the .env settings via real ENV variables of course.
+        env_file = '.env'       # in the docker container, if the .env file is present, take it. Even then, you can overwrite the .env settings via real ENV variables of course.
