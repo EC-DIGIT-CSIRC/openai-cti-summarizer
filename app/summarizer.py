@@ -15,7 +15,7 @@ class Summarizer:
         if self.go_azure:
             openai.api_type = "azure"
             openai.api_base = "https://devmartiopenai.openai.azure.com/"
-            openai.api_version = "2023-03-15-preview"
+            openai.api_version = "2023-05-15""
         openai.api_key = self.API_KEY
 
     def summarize(self, text: str, system_prompt: str = "") -> Tuple[str, str]:
