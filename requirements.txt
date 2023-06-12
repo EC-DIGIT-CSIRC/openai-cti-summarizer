@@ -11,7 +11,7 @@ colorama==0.4.6
 distlib==0.3.6
 et-xmlfile==1.1.0
 fastapi==0.97.0
-filelock==3.12.0
+filelock==3.12.1
 frozenlist==1.3.3
 h11==0.14.0
 idna==3.4
