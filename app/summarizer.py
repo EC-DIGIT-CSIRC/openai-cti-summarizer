@@ -2,6 +2,7 @@ import openai
 import openai.error
 from typing import Tuple
 
+
 class Summarizer:
     def __init__(self, API_KEY: str, model: str, max_tokens: int, system_prompt: str = "", go_azure: bool = False):
         if system_prompt:
@@ -15,7 +16,7 @@ class Summarizer:
         if self.go_azure:
             openai.api_type = "azure"
             openai.api_base = "https://devmartiopenai.openai.azure.com/"
-            openai.api_version = "2023-05-15""
+            openai.api_version = "2023-05-15"
         openai.api_key = self.API_KEY
 
     def summarize(self, text: str, system_prompt: str = "") -> Tuple[str, str]:
