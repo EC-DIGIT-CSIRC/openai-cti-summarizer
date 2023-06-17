@@ -55,7 +55,7 @@ class Summarizer:
             error = None            # Or move the error handling back to main.py, not sure
         except openai.error.OpenAIError as e:
             result = None
-            error = f"OpenAI API returned an API Error: {e}"
+            error = f"OpenAI API returned an API Error: {str(e)}"
         except Exception as e:
             result = None
             error = f"Unknown error! Error = '{str(e)}'"
