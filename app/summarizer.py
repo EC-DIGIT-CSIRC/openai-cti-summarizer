@@ -33,7 +33,7 @@ class Summarizer:
         try:
             if self.go_azure:
                 response = openai.ChatCompletion.create(
-                    engine="openai-cti-summarizer-depoloyment-1",
+                    engine="openai-cti-summarizer-deployment-1",
                     messages=messages,
                     temperature=0.7,
                     top_p=0.95,
