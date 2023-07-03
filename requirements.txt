@@ -35,7 +35,7 @@ sniffio==1.3.0
 starlette
 tqdm==4.65.0
 types-pytz==2023.3.0.0
-typing_extensions==4.6.3
+typing_extensions==4.7.1
 urllib3==2.0.3
 uvicorn==0.22.0
 virtualenv==20.23.1
