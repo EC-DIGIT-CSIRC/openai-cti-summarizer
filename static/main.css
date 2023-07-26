@@ -55,6 +55,12 @@ input[type="text"] {
   border-radius: 4px;
   margin-bottom: 24px;
 }
+input[type="url"] {
+  padding: 12px 16px;
+  border: 1px solid #10a37f;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
 /* input [type="textarea"] { */
 .textarea {
   /* padding: 24px 32px; */
