@@ -24,7 +24,6 @@ except Exception as e:
     go_azure = False
 
 
-# summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, model='gpt-4', max_tokens=500)
 summarizer = Summarizer(API_KEY=settings.OPENAI_API_KEY, go_azure=go_azure, model='gpt-4-32k', max_tokens=500)
 
 

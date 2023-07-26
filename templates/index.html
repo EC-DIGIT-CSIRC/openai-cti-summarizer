@@ -22,6 +22,9 @@
         button.disabled = true;
       }
     }
+    function clearTextarea() {
+      document.getElementById("text").value = '';
+    }
   </script>
   <style>
     #submit_button {
@@ -165,8 +168,25 @@
       </div>
       <div>
         <!-- main textarea -->
+        <p class="control has-icons-right has-icons-right">
+          <label class="label" for="url">Summarize: </label>
+        </p>
+        &nbsp;
+        <p/>
+        <div class="field">
+          <!-- <input type="url" id="url" name="url" size="80" placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input> -->
+          <input class="is-size-7" type="text" id="url" name="url" style="color: #4c516d; width: 100%;" 
+            placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
+          <p/>
+          &nbsp;
+          <p/>
+        </div>
+        <div class="field">
+        <!-- or ... -->
+          <label class="label" for="text">... or this text:</label>
+        </p>
         <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
-          placeholder="The report to be summarized goes here" autocomplete="off" required wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
+          placeholder="The report to be summarized goes here" autocomplete="off" wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
       </div>
 
       <div class="field">
@@ -175,10 +195,9 @@
           <div class="select">
             <select id="model" name="model">
               <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-              <option value="gpt-3.5-turbo-16k" selected>gpt-3.5-turbo-16k</option>
+              <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
               <option value="gpt-4">gpt-4</option>
-              <option value="gpt-4-32k">gpt-4-32k (future)</option>
-			  <!-- <option value="gpt-4-32k">gpt-4-32k</option> -- GPT-4-32k does not exist yet -->
+              <option value="gpt-4-32k" selected>gpt-4-32k</option>
             </select>
           </div>
         </div>
