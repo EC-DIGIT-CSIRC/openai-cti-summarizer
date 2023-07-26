@@ -28,7 +28,7 @@ class Summarizer:
             {"role": "user", "content": text}
         ]
 
-        # XXX FIXME: work with chunks 
+        # XXX FIXME: work with chunks
 
         try:
             if self.go_azure:
@@ -48,7 +48,7 @@ class Summarizer:
                     temperature=0.7,
                     top_p=0.95,
                     stop=None,
-                    max_tokens=self.max_tokens,     # TODO: Make sure this actually means, summarize in X token
+                    max_tokens=self.max_tokens,
                     n=1,
                 )
             result = response.choices[0].message.content
