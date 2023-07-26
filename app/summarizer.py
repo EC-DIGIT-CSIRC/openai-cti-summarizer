@@ -20,7 +20,9 @@ class Summarizer:
         openai.api_key = self.API_KEY
 
     def summarize(self, text: str, system_prompt: str = "") -> Tuple[str, str]:
-        """Send <text> to openAI and get a summary back"""
+        """Send <text> to openAI and get a summary back.
+        Returns a tuple: error, message. Note that either error or message may be None.
+        """
         if not system_prompt:
             system_prompt = self.system_prompt
         messages = [
