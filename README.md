@@ -7,7 +7,6 @@ However, if this task is not what you need, you can also give it another system 
 
 One of the main benefits of using the API is that, according to OpenAI's documentation, they delete the queries after some time and don't use it for training the next models. See [here](https://platform.openai.com/docs/guides/chat/chat-vs-completions) and [here](https://openai.com/policies/usage-policies).
 
-*Note*: this is a copy of [this repo](https://github.com/aaronkaplan/openai-cti-summarizer)
 
 
 Input:
