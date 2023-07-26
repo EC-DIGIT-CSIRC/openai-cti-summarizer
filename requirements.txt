@@ -4,7 +4,7 @@ anyio==3.7.0
 asgiref==3.7.2
 async-timeout==4.0.2
 attrs==23.1.0
-certifi==2023.5.7
+certifi==2023.7.22
 charset-normalizer==3.2.0
 click==8.1.6
 colorama==0.4.6
