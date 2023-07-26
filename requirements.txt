@@ -24,7 +24,7 @@ openpyxl==3.1.2
 pandas==2.0.3
 pandas-stubs==2.0.2.230605
 platformdirs==3.9.1
-pydantic==1.10.7
+pydantic
 pydantic-settings
 python-dateutil==2.8.2
 python-dotenv==1.0.0
