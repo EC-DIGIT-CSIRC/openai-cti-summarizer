@@ -1,5 +1,5 @@
 import uuid
-from pydantic import BaseSettings
+from pydantic_settings import SettingsConfigDict, BaseSettings
 
 
 class Settings(BaseSettings):
@@ -9,6 +9,4 @@ class Settings(BaseSettings):
     SESSION_UUID: uuid.UUID = uuid.uuid4()  # the "End-user ID" field for the OpenAI API
     USE_MS_AZURE: bool = True   # go via MS AZURE's API which basically proxies OpenaI, but hey, it's GDPR compliant. *shrug*
     API_BASE: str = ""          # only needed in case we need to go via MS Azure.
-
-    class Config:
-        env_file = '.env'       # in the docker container, if the .env file is present, take it. Even then, you can overwrite the .env settings via real ENV variables of course.
+    model_config = SettingsConfigDict(env_file='.env')
