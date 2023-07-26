@@ -167,15 +167,14 @@
         </input>
       </div>
       <div>
-        <!-- main textarea -->
+        <!-- main inputs -->
         <p class="control has-icons-right has-icons-right">
           <label class="label" for="url">Summarize: </label>
         </p>
         &nbsp;
         <p/>
         <div class="field">
-          <!-- <input type="url" id="url" name="url" size="80" placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input> -->
-          <input class="is-size-7" type="text" id="url" name="url" style="color: #4c516d; width: 100%;" 
+          <input class="is-size-7" type="url" id="url" name="url" style="color: #4c516d; width: 100%;" 
             placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
           <p/>
           &nbsp;
@@ -188,16 +187,15 @@
         <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
           placeholder="The report to be summarized goes here" autocomplete="off" wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
       </div>
-
       <div class="field">
         <label class="label" for="model">Model:</label>
         <div class="control">
           <div class="select">
             <select id="model" name="model">
               <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-              <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
+              <option value="gpt-3.5-turbo-16k" selected>gpt-3.5-turbo-16k</option>
               <option value="gpt-4">gpt-4</option>
-              <option value="gpt-4-32k" selected>gpt-4-32k</option>
+              <option value="gpt-4-32k">gpt-4-32k</option>
             </select>
           </div>
         </div>
@@ -208,7 +206,7 @@
           <input id="word_count" name="word_count" class="slider" step="10" min="100" max="4000" value="500"
             type="range">
         </div>
-        <div id="word_count_value">500</div>
+        <div id="word_count_value">1000</div>
       </div>
       <div>
         <input type="submit" id="submit_button" value="Generate summary" disabled />

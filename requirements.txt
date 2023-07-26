@@ -44,3 +44,4 @@ wincertstore==0.2
 yarl==1.9.2
 Markdown==3.4.3
 MarkupSafe==2.1.3
+beautifulsoup4==4.8.2
