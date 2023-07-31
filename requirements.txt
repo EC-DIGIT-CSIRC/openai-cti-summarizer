@@ -42,5 +42,5 @@ uvicorn==0.22.0
 virtualenv==20.24.1
 wincertstore==0.2
 yarl==1.9.2
-Markdown==3.4.3
+Markdown==3.4.4
 MarkupSafe==2.1.3
