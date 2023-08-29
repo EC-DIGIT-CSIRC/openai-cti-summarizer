@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
-
 <head>
   <title>Summarize this (via OpenAI)</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
   <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
@@ -91,183 +91,206 @@
       white-space: pre;
       font-weight: bold;
     }
+
     .info-icon {
       position: relative;
     }
 
-  .tooltip {
-    visibility: hidden;
-    position: absolute;
-    z-index: 1;
-  }
+    .tooltip {
+      visibility: hidden;
+      position: absolute;
+      z-index: 1;
+    }
 
-  .info-icon:hover .tooltip {
-    visibility: visible;
-  }
-  
-  .copy-button {
-    background-color: transparent;
-    color: #3273dc;
-    border: none;
-    transition: all 0.2s ease-in-out;
-  }
+    .info-icon:hover .tooltip {
+      visibility: visible;
+    }
 
-  .copy-button:hover {
-    background-color: #3273dc;
-    color: #fff;
-  }
+    .copy-button {
+      background-color: transparent;
+      color: #3273dc;
+      border: none;
+      transition: all 0.2s ease-in-out;
+    }
+
+    .copy-button:hover {
+      background-color: #3273dc;
+      color: #fff;
+    }
   </style>
 </head>
 
 <body>
-  <div class="page">
-    <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
-    <h3>Summarize this</h3>
-    <form action="/" method="post">
-      {% if not api_key %}
-      <div class="is-size-7">
-        <label for="api-key">API Key:</label>
-        <input class="is-size-7" type="text" id="api-key" name="api_key" style="color: #cccc;"
-          placeholder="Enter your API key" autocomplete="off" value="{% if api_key %}{{ api_key }}{% endif %}"></input>
+  <main style="min-height: calc(100vh - 3rem);">
+    <!-- <div class="page"> -->
+    <section class="section"> <!-- main page section-->
+      <div class="container is-fluid"> <!-- logo , heading-->
+        <center>
+        <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
+        <h3>Summarize this</h3>
+        </center>
       </div>
-      {% endif %}
-      <div class="is-size-7">
-        <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
-        &nbsp;
-        <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"> <strong class="tlp-clear">TLP:CLEAR
-            </strong></a> data, ... and</label>
-        <p/>
-        <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
-        &nbsp;
-        <label for="accepted_limitations">I accept the <a
-            href="{{ url_for('static', path='/limits.html') }}"><b>limitations</b></a></label>
-        </p>
-        <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check" onclick="enableSubmit()" />
-        &nbsp;
-        <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated report</b></label>
-        </p>
-        <!-- system prompt -->
-        <hr/>
+      <div class="container is-fluid">
+        <form action="/" method="post">
+          <div class="is-size-7">
+            <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
+            &nbsp;
+            <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"> <strong
+                  class="tlp-clear">TLP:CLEAR
+                </strong></a> data, ... and</label>
+            <p />
+            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
+            &nbsp;
+            <label for="accepted_limitations">I accept the <a
+                href="{{ url_for('static', path='/limits.html') }}"><b>limitations</b></a></label>
+            </p>
+            <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check"
+              onclick="enableSubmit()" />
+            &nbsp;
+            <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated
+                report</b></label>
+            </p>
+            <!-- system prompt -->
+            <hr />
+          </div>
+          <div class="field">
+            <p class="control has-icons-right has-icons-right">
+              <label class="label" for="system-prompt">Base instructions: </label>
+            </p>
+            &nbsp;
+            <p />
+            <!--
+				  <span class="icon is-right info-icon">
+					<i class="fas fa-info-circle"></i>
+				  </span>
+				  <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
+				-->
+            <input class="is-size-7" type="text" id="system-prompt" name="system_prompt"
+              style="color: #4c516d; width: 100%;"
+              placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')"
+              autocomplete="off" value="{% if system_prompt %}{{ system_prompt }}{% endif %}">
+            </input>
+          </div>
+          <div>
+            <!-- main inputs -->
+            <p class="control has-icons-right has-icons-right">
+              <label class="label" for="url">Summarize: </label>
+            </p>
+            &nbsp;
+            <p />
+            <div class="field">
+              <input class="is-size-7" type="url" id="url" name="url" style="color: #4c516d; width: 100%;"
+                placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
+              <p />
+              &nbsp;
+              <p />
+            </div>
+            <div class="field">
+              <!-- or ... -->
+              <label class="label" for="text">... or this text:</label>
+              </p>
+              <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
+                placeholder="The report to be summarized goes here" autocomplete="off"
+                wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
+            </div>
+            <div class="field">
+              <label class="label" for="model">Model:</label>
+              <div class="control">
+                <div class="select">
+                  <select id="model" name="model">
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    <option value="gpt-3.5-turbo-16k" selected>gpt-3.5-turbo-16k</option>
+                    <option value="gpt-4">gpt-4</option>
+                    <option value="gpt-4-32k">gpt-4-32k</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label" for="word_count">Summarize in (100-4000) words:</label>
+              <div class="control">
+                <input id="word_count" name="word_count" class="slider" step="10" min="100" max="4000" value="500"
+                  type="range">
+              </div>
+              <div id="word_count_value">1000</div>
+            </div>
+            <div>
+              <input type="submit" id="submit_button" value="Generate summary" disabled />
+            </div>
+        </form>
       </div>
-      <div class="field">
-        <p class="control has-icons-right has-icons-right">
-          <label class="label" for="system-prompt">Base instructions: </label>
-        </p>
-        &nbsp;
-        <p/>
-        <!--
-          <span class="icon is-right info-icon">
-            <i class="fas fa-info-circle"></i>
-          </span>
-          <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
-        -->
-        <input class="is-size-7" type="text" id="system-prompt" name="system_prompt" style="color: #4c516d; width: 100%;" 
-          placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')" autocomplete="off" 
-          value="{% if system_prompt %}{{ system_prompt }}{% endif %}">
-        </input>
-      </div>
-      <div>
-        <!-- main inputs -->
-        <p class="control has-icons-right has-icons-right">
-          <label class="label" for="url">Summarize: </label>
-        </p>
-        &nbsp;
-        <p/>
-        <div class="field">
-          <input class="is-size-7" type="url" id="url" name="url" style="color: #4c516d; width: 100%;" 
-            placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
-          <p/>
-          &nbsp;
-          <p/>
-        </div>
-        <div class="field">
-        <!-- or ... -->
-          <label class="label" for="text">... or this text:</label>
-        </p>
-        <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
-          placeholder="The report to be summarized goes here" autocomplete="off" wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
-      </div>
-      <div class="field">
-        <label class="label" for="model">Model:</label>
-        <div class="control">
-          <div class="select">
-            <select id="model" name="model">
-              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-              <option value="gpt-3.5-turbo-16k" selected>gpt-3.5-turbo-16k</option>
-              <option value="gpt-4">gpt-4</option>
-              <option value="gpt-4-32k">gpt-4-32k</option>
-            </select>
+      <div> <!-- answer-->
+        <p />&nbsp;
+        <p />
+        {% if result %}
+        {% if success %}
+        <article class="message is-success">
+          {% else %}
+          <article class="message is-danger">
+            {% endif %}
+            <div class="message-header" style="position: relative;">
+              <p>Results:</p>
+              <button class="button is-small copy-button"
+                style="position: absolute; top: 5px; right: 5px; font-style: italic; color: #fff;"
+                onclick="copyToClipboard()">
+                <i class="far fa-copy"></i>&nbsp;Copy to clipboard
+              </button>
+            </div>
+            <div class="message-body markdown" style="position: relative;">
+              {{ result|safe }}
+              <!-- <button class="fa fa-clipboard button copy-button is-small is-pulled-right" aria-hidden="false" onclick="copyToClipboard()"></button> -->
+            </div>
+          </article>
+          {% endif %}
+          {% if metainfo %}
+          <div class="metainfo">{{ metainfo }}</div>
+          {% endif %}
+          <p />&nbsp;
+          <p />
+      </div> 
+    </section>
+    <section>  <!-- footer section -->
+      <footer class="footer">
+        <div class="container is-fluid">
+          <div class="content has-text-centered">
+            <font size="-1">Version: 0.2. Copyright 2023 (C) by Aaron Kaplan. All rights reserved.<a
+                href="mailto:kaplan@lo-res.org">E-mail</a>.<p></p>
+              <p class="font-size-8">Made with <font color="red">❤</font> in Vienna</p>
+            </font>
           </div>
         </div>
-      </div>
-      <div class="field">
-        <label class="label" for="word_count">Summarize in (100-4000) words:</label>
-        <div class="control">
-          <input id="word_count" name="word_count" class="slider" step="10" min="100" max="4000" value="500"
-            type="range">
-        </div>
-        <div id="word_count_value">1000</div>
-      </div>
-      <div>
-        <input type="submit" id="submit_button" value="Generate summary" disabled />
-      </div>
-    </form>
-    <p />&nbsp;
-    <p />
-    {% if result %}
-    {% if success %}
-    <article class="message is-success">
-      {% else %}
-      <article class="message is-danger">
-        {% endif %}
-        <div class="message-header" style="position: relative;">
-          <p>Results:</p>
-          <button class="button is-small copy-button" style="position: absolute; top: 5px; right: 5px; font-style: italic; color: #fff;" onclick="copyToClipboard()">
-            <i class="far fa-copy"></i>&nbsp;Copy to clipboard
-          </button>
-        </div>
-        <div class="message-body markdown" style="position: relative;">
-          {{ result|safe }}
-          <!-- <button class="fa fa-clipboard button copy-button is-small is-pulled-right" aria-hidden="false" onclick="copyToClipboard()"></button> -->
-        </div>
-      </article>
-      {% endif %}
-      {% if metainfo %}
-      <div class="metainfo">{{ metainfo }}</div>
-      {% endif %}
-      <p />&nbsp;
-      <p />
-  </div>
+      </footer>
+    </section>
+  </main>
 </body>
 <script>
-    const wordCountSlider = document.getElementById("word_count");
-    const wordCountValue = document.getElementById("word_count_value");
-    wordCountSlider.oninput = function() {
-        wordCountValue.innerHTML = this.value;
-    }
+  const wordCountSlider = document.getElementById("word_count");
+  const wordCountValue = document.getElementById("word_count_value");
+  wordCountSlider.oninput = function () {
+    wordCountValue.innerHTML = this.value;
+  }
 
-    // copy & paste code
-    function copyToClipboard() {
-      const messageBody = document.querySelector('.message-body');
-      const range = document.createRange();
-      range.selectNode(messageBody);
-      window.getSelection().addRange(range);
-      document.execCommand('copy');
-      window.getSelection().removeAllRanges();
-    }
+  // copy & paste code
+  function copyToClipboard() {
+    const messageBody = document.querySelector('.message-body');
+    const range = document.createRange();
+    range.selectNode(messageBody);
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    window.getSelection().removeAllRanges();
+  }
 
-    // for the info icon
-    const infoIcon = document.querySelector('.icon');
-    const tooltip = document.querySelector('.tooltip');
+  // for the info icon
+  const infoIcon = document.querySelector('.icon');
+  const tooltip = document.querySelector('.tooltip');
 
-    infoIcon.addEventListener('mouseenter', () => {
-      tooltip.classList.add('is-active');
-    });
+  infoIcon.addEventListener('mouseenter', () => {
+    tooltip.classList.add('is-active');
+  });
 
-    infoIcon.addEventListener('mouseleave', () => {
-      tooltip.classList.remove('is-active');
-    });
+  infoIcon.addEventListener('mouseleave', () => {
+    tooltip.classList.remove('is-active');
+  });
 </script>
 
-</script>
 </html>

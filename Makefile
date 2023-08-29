@@ -1,2 +1,4 @@
-all:
-	docker build -t openai-summarizer:0.1 . --network=host && docker compose down && docker compose  --env-file .env up -d
+VERSION=`cat VERSION.txt`
+
+all:	app/*.py requirements.txt Dockerfile docker-compose.yml static/* templates/*
+	docker build -t openai-summarizer:$(VERSION) . --network=host && docker compose down && docker compose  --env-file .env up -d

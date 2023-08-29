@@ -1,12 +1,15 @@
+
 version: "3"
 services:
   # The main microservice, serving the OpenAI summarizer
   #
   openai-summarizer:
-    image: openai-summarizer:0.1
+    image: openai-summarizer:${VERSION}
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - VERSION=${VERSION}
     environment:
       PYTHON_PATH: /app
     env_file: .env
@@ -14,3 +17,5 @@ services:
       - "9999:9999"
     dns: 8.8.8.8
     network_mode: host
+    volumes:
+      - ./app:/app

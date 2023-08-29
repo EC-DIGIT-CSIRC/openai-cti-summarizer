@@ -1,3 +1,4 @@
+"""
 import uuid
 from pydantic_settings import SettingsConfigDict, BaseSettings
 
@@ -10,3 +11,4 @@ class Settings(BaseSettings):
     USE_MS_AZURE: bool = True   # go via MS AZURE's API which basically proxies OpenaI, but hey, it's GDPR compliant. *shrug*
     API_BASE: str = ""          # only needed in case we need to go via MS Azure.
     model_config = SettingsConfigDict(env_file='.env')
+"""
