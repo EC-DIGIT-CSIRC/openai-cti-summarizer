@@ -23,7 +23,7 @@ openai==0.27.8
 openpyxl==3.1.2
 pandas==2.0.3
 pandas-stubs==2.0.2.230605
-platformdirs==3.9.1
+platformdirs==3.11.0
 pydantic
 pydantic-settings
 python-dateutil==2.8.2
