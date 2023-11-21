@@ -16,6 +16,18 @@ services:
     ports:
       - "9999:9999"
     dns: 8.8.8.8
-    network_mode: host
+    # network_mode: host
     volumes:
       - ./app:/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.munch-cti.rule=Host(`munch-cti.lo-res.org`)"
+      - "traefik.http.routers.munch-cti.entrypoints=websecure"
+      - "traefik.http.routers.munch-cti.tls.certresolver=myresolver"
+      - "traefik.http.services.munch-cti.loadbalancer.server.port=9999"
+    networks:
+      - web
+
+networks:
+  web:
+    external: true

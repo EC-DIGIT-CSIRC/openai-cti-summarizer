@@ -15,6 +15,7 @@ COPY app /app
 COPY templates /templates
 COPY static /static
 COPY .env /
+COPY VERSION.txt  /
 
 # expose the port for the FastAPI application
 EXPOSE 9999
