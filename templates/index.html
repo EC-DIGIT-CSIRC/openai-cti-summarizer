@@ -199,20 +199,20 @@
                 <div class="select">
                   <select id="model" name="model">
                     <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
-                    <option value="gpt-3.5-turbo-16k" selected>gpt-3.5-turbo-16k</option>
+                    <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
                     <option value="gpt-4">gpt-4</option>
                     <option value="gpt-4-32k">gpt-4-32k</option>
+                    <option value="gpt-4-1106-preview" selected>gpt-4-turbo</option>
                   </select>
                 </div>
               </div>
             </div>
             <div class="field">
-              <label class="label" for="word_count">Summarize in (100-4000) words:</label>
+              <label class="label" for="token_count">Summarize in (100-8192) tokens (approx. 30-2700 words):</label>
               <div class="control">
-                <input id="word_count" name="word_count" class="slider" step="10" min="100" max="4000" value="500"
-                  type="range">
+                <input id="token_count" name="token_count" class="slider" step="10" min="100" max="8192" value="4096" type="range">
               </div>
-              <div id="word_count_value">1000</div>
+              <div id="token_count_value">4096</div>
             </div>
             <div>
               <input type="submit" id="submit_button" value="Generate summary" disabled />
@@ -264,10 +264,10 @@
   </main>
 </body>
 <script>
-  const wordCountSlider = document.getElementById("word_count");
-  const wordCountValue = document.getElementById("word_count_value");
-  wordCountSlider.oninput = function () {
-    wordCountValue.innerHTML = this.value;
+  const tokenCountSlider = document.getElementById("token_count");
+  const tokenCountValue = document.getElementById("token_count_value");
+  tokenCountSlider.oninput = function () {
+    tokenCountValue.innerHTML = this.value;
   }
 
   // copy & paste code
