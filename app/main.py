@@ -1,5 +1,7 @@
+"""Main FastAPI file. Provides the app WSGI entry point."""
 import os
 import sys
+import json
 
 import uvicorn
 from fastapi import FastAPI, Request, Form, Depends
@@ -20,16 +22,17 @@ from auth import get_current_username
 from distutils.util import strtobool
 
 
-DEBUG = True
+from settings import log
+
 
 # first get the env parametting
 if not load_dotenv(find_dotenv(), verbose=True, override=False):     # read local .env file
-    print("Could not find .env file! Assuming ENV vars work")
+    log.warning("Could not find .env file! Assuming ENV vars work")
 
 try:
     VERSION = open('../VERSION.txt', encoding='utf-8').readline().rstrip('\n')
 except Exception as e:
-    print("could not find VERSION.txt, bailing out.")
+    log.error("could not find VERSION.txt, bailing out.")
     sys.exit(-1)
 
 
@@ -37,6 +40,7 @@ app = FastAPI(version=VERSION)
 templates = Jinja2Templates(directory="/templates")
 app.mount("/static", StaticFiles(directory="/static"), name="static")
 GO_AZURE = False    # default
+OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false'))) 
 DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
 
 
@@ -44,8 +48,7 @@ DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
 try:
     GO_AZURE = bool(strtobool(os.getenv('USE_MS_AZURE', 'false')))
 except Exception as e:
-    print(
-        f"Could not read 'USE_MS_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
+    log.warning(f"Could not read 'USE_MS_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
     GO_AZURE = False
 
 
@@ -59,7 +62,7 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(HTTPSRedirectMiddleware)
 
-summarizer = Summarizer(go_azure=GO_AZURE, model='gpt-4-1106-preview', max_tokens=8192)
+summarizer = Summarizer(go_azure=GO_AZURE, model='gpt-4-1106-preview', max_tokens=8192, output_json=OUTPUT_JSON)
 
 
 async def fetch_text_from_url(url: str) -> str:
