@@ -8,7 +8,7 @@ security = HTTPBasic()
 
 # fake users to simulate authentication
 fake_users = {
-    os.getenv('BASIC_AUTH_USER'): os.getenv('BASIC_AUTH_PASSWD')
+    os.getenv('BASIC_AUTH_USER'): os.getenv('BASIC_AUTH_PASSWORD')
 }
 
 
