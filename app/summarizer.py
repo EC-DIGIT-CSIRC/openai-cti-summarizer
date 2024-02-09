@@ -71,7 +71,7 @@ class Summarizer:
                 log.info("Using MS AZURE!")
                 response = self.client.chat.completions.create(model=os.environ['ENGINE'],
                                                                messages=messages,
-                                                               temperature=0.7,
+                                                               temperature=0.3,
                                                                top_p=0.95,
                                                                stop=None,
                                                                max_tokens=self.max_tokens,
@@ -84,7 +84,7 @@ class Summarizer:
                     response_format = None
                 response = self.client.chat.completions.create(model=self.model,
                                                                messages=messages,
-                                                               temperature=0.7,
+                                                               temperature=0.3,
                                                                top_p=0.95,
                                                                stop=None,
                                                                max_tokens=self.max_tokens,

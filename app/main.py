@@ -42,6 +42,7 @@ app.mount("/static", StaticFiles(directory="/static"), name="static")
 GO_AZURE = False    # default
 OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false'))) 
 DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
+OPENAI_MODEL = os.getenv('OPENAI_MODEL')
 
 
 # First detect if we should invoke OpenAI via MS Azure or directly
@@ -62,7 +63,7 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(HTTPSRedirectMiddleware)
 
-summarizer = Summarizer(go_azure=GO_AZURE, model='gpt-4-1106-preview', max_tokens=8192, output_json=OUTPUT_JSON)
+summarizer = Summarizer(go_azure=GO_AZURE, model=OPENAI_MODEL, max_tokens=8192, output_json=OUTPUT_JSON)
 
 
 async def fetch_text_from_url(url: str) -> str:
@@ -87,7 +88,7 @@ def get_index(request: Request, username: str = Depends(get_current_username)):
 
 @app.post("/", response_class=HTMLResponse)
 async def index(request: Request, text: str = Form(None), url: str = Form(None),
-                system_prompt: str = Form(None), model: str = Form('gpt-4'), token_count: int = Form(100),
+                system_prompt: str = Form(None), model: str = Form('model'), token_count: int = Form(100),
                 username: str = Depends(get_current_username)):
     """HTTP POST method for the default page. This gets called when the user already HTTP POSTs a text which should be summarized."""
 
