@@ -16,3 +16,5 @@ Markdown
 MarkupSafe
 beautifulsoup4
 python-dotenv
+pytest
+pytest-cov
