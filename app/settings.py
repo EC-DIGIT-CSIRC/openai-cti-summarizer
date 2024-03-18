@@ -1,3 +1,5 @@
+"""General settings config."""
+
 import logging
 
 

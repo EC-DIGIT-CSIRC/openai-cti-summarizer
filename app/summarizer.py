@@ -1,10 +1,11 @@
+"""The summarizer class, abstracting away the LLM."""
 import os
 from typing import Tuple
 
 import openai
 from openai import AzureOpenAI
 
-from settings import log
+from settings import log            # pylint: ignore=import-error
 
 # first get the env parametting
 from dotenv import load_dotenv, find_dotenv
@@ -90,7 +91,7 @@ class Summarizer:
                                                                max_tokens=self.max_tokens,
                                                                response_format=response_format,
                                                                n=1)
-                
+
             log.debug(f"Full Response (OpenAI): {response}")
             log.debug(f"response.choices[0].text: {response.choices[0].message}")
             log.debug(response.model_dump_json(indent=2))

@@ -1,4 +1,6 @@
-import os 
+"""Authorization helper."""
+
+import os
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -14,9 +16,9 @@ fake_users = {
 
 # dependency to check if the credentials are valid
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+    """Check if user in the allowed list"""
     username = credentials.username
     password = credentials.password
     if username in fake_users and password == fake_users[username]:
         return username
     raise HTTPException(status_code=401, detail="Invalid credentials")
-

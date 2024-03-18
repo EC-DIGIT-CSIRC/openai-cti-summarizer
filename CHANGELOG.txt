@@ -1,0 +1,6 @@
+Version 0.5 (204/3/19)
+==========================
+
+* added PDF upload functionality
+* cleaned up stuff pylint was complaining about
+

@@ -131,7 +131,8 @@
         </center>
       </div>
       <div class="container is-fluid">
-        <form action="/" method="post">
+        <form action="/" method="post" enctype="multipart/form-data"> 
+          <!-- Limitations checkboxes -->
           <div class="is-size-7">
             <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
             &nbsp;
@@ -150,12 +151,13 @@
             <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated
                 report</b></label>
             </p>
-            <!-- system prompt -->
-            <hr />
+          <!-- / Limitations checkboxes -->
+          <!-- system prompt -->
+          <hr />
           </div>
           <div class="field">
             <p class="control has-icons-right has-icons-right">
-              <label class="label" for="system-prompt">Base instructions: </label>
+              <label class="label" for="system-prompt">Base prompt: </label>
             </p>
             &nbsp;
             <p />
@@ -178,6 +180,7 @@
             </p>
             &nbsp;
             <p />
+            <!-- URL -->
             <div class="field">
               <input class="is-size-7" type="url" id="url" name="url" style="color: #4c516d; width: 100%;"
                 placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
@@ -185,6 +188,34 @@
               &nbsp;
               <p />
             </div>
+            <!-- PDF upload -->
+            <div class="field">
+              <label class="label">... or upload a PDF</label>
+              <div class="file is-boxed">
+                <label class="file-label">
+                  <input class="file-input" type="file" id="pdffile" name="pdffile" accept="application/pdf">
+                  <span class="file-cta">
+                    <span class="file-icon">
+                      <i class="fas fa-upload"></i>
+                    </span>
+                    <span class="file-label">
+                      Choose a PDF…
+                    </span>
+                  </span>
+                </label>
+              </div>
+            </div>
+            <!-- <div class="field">
+              <div class="control">
+                <button type="submit" class="button is-primary">Upload</button>
+              </div>
+            -->
+              <p />
+              &nbsp;
+              <p />
+            </div>
+            <!-- / PDF upload -->
+            <!-- or text... -->
             <div class="field">
               <!-- or ... -->
               <label class="label" for="text">... or this text:</label>
