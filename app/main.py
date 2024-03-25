@@ -46,7 +46,6 @@ OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false')))
 DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
 
-
 # First detect if we should invoke OpenAI via MS Azure or directly
 try:
     GO_AZURE = bool(strtobool(os.getenv('USE_MS_AZURE', 'false')))
@@ -54,6 +53,12 @@ except Exception as e:
     log.warning(
         f"Could not read 'USE_MS_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
     GO_AZURE = False
+
+# print out settings
+log.info(f"{GO_AZURE=}")
+log.info(f"{OUTPUT_JSON=}")
+log.info(f"{DRY_RUN=}")
+log.info(f"{OPENAI_MODEL=}")
 
 
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
