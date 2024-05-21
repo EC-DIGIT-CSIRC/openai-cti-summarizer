@@ -1,5 +1,3 @@
-
-version: "3"
 services:
   # The main microservice, serving the OpenAI summarizer
   #

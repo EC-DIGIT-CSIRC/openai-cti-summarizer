@@ -41,17 +41,17 @@ except Exception as e:
 app = FastAPI(version=VERSION)
 templates = Jinja2Templates(directory="/templates")
 app.mount("/static", StaticFiles(directory="/static"), name="static")
-GO_AZURE = False    # default
+GO_AZURE = bool(strtobool(os.getenv('USE_AZURE', 'true')))
 OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false')))
 DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
 OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
 
 # First detect if we should invoke OpenAI via MS Azure or directly
 try:
-    GO_AZURE = bool(strtobool(os.getenv('USE_MS_AZURE', 'false')))
+    GO_AZURE = bool(strtobool(os.getenv('USE_AZURE', 'false')))
 except Exception as e:
     log.warning(
-        f"Could not read 'USE_MS_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
+        f"Could not read 'USE_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
     GO_AZURE = False
 
 # print out settings
