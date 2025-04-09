@@ -3,6 +3,6 @@
     "python.linting.pylintEnabled": false,
     "python.linting.pycodestyleEnabled": true,
     "python.linting.enabled": true,
-    "python.linting.pycodestyleArgs": ["--max-line-length=128", "--ignore=E501", ]
-
+    "python.linting.pycodestyleArgs": ["--max-line-length=128", "--ignore=E501", ],
+    "python.linting.pylintArgs": [ "--disable=F0401" ] 
 }
