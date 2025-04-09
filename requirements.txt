@@ -1,7 +1,6 @@
 fastapi
-MarkupSafe
 multidict
-openai==1.14.1
+openai
 openpyxl
 platformdirs
 pydantic
@@ -9,12 +8,12 @@ pydantic-settings
 python-multipart
 requests
 starlette
-tqdm==4.65.0
-types-pytz==2023.3.0.0
-typing_extensions==4.7.1
-urllib3==2.0.4
-wincertstore==0.2
-yarl==1.9.2
+tqdm
+types-pytz
+typing_extensions
+urllib3
+wincertstore
+yarl
 uvicorn
 virtualenv
 Jinja2
