@@ -11,12 +11,15 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # copy the main files
-COPY . .
-COPY .env .
+COPY app /app
+COPY templates /templates
+COPY static /static
+COPY .env /
+COPY VERSION.txt  /
 
 # expose the port for the FastAPI application
 EXPOSE 9999
 
 # run the FastAPI application
-CMD ["uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0", "--port", "9999"]
+CMD ["uvicorn", "main:app", "--access-log", "--reload", "--host", "0.0.0.0", "--port", "9999"]
 

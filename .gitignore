@@ -18,3 +18,5 @@ build/
 
 .env
 *.gif
+
+env.backup
