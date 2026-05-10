@@ -10,7 +10,6 @@ import requests
 from bs4 import BeautifulSoup
 from pydantic import BaseModel, Field, field_validator
 
-
 ATTACK_ENTERPRISE_URL = "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
 MALPEDIA_ACTORS_URL = "https://malpedia.caad.fkie.fraunhofer.de/actors"
 

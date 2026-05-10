@@ -229,19 +229,12 @@
               <div class="control">
                 <div class="select">
                   <select id="model" name="model">
-                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option value="gpt-5.4-mini" selected>gpt-5.4-mini</option>
-                    <option value="gpt-5.5" selected>gpt-5.5</option>
+                    <option value="gpt-4o-mini" {% if model == "gpt-4o-mini" %}selected{% endif %}>gpt-4o-mini</option>
+                    <option value="gpt-5.4-mini" {% if model == "gpt-5.4-mini" %}selected{% endif %}>gpt-5.4-mini</option>
+                    <option value="gpt-5.5" {% if model == "gpt-5.5" %}selected{% endif %}>gpt-5.5</option>
                   </select>
                 </div>
               </div>
-            </div>
-            <div class="field">
-              <label class="label" for="token_count">Summarize in (100-8192) tokens (approx. 30-2700 words):</label>
-              <div class="control">
-                <input id="token_count" name="token_count" class="slider" step="10" min="100" max="8192" value="4096" type="range">
-              </div>
-              <div id="token_count_value">4096</div>
             </div>
             <div>
               <input type="submit" id="submit_button" value="Generate summary" disabled />
@@ -293,12 +286,6 @@
   </main>
 </body>
 <script>
-  const tokenCountSlider = document.getElementById("token_count");
-  const tokenCountValue = document.getElementById("token_count_value");
-  tokenCountSlider.oninput = function () {
-    tokenCountValue.innerHTML = this.value;
-  }
-
   // copy & paste code
   function copyToClipboard() {
     const messageBody = document.querySelector('.message-body');

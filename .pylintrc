@@ -1,0 +1,22 @@
+[MAIN]
+py-version=3.13
+
+[MESSAGES CONTROL]
+disable=
+    missing-class-docstring,
+    missing-function-docstring,
+    invalid-name,
+    import-outside-toplevel,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-positional-arguments,
+    too-many-locals,
+    too-many-return-statements,
+    no-value-for-parameter,
+    line-too-long,
+    trailing-newlines,
+    broad-exception-caught,
+    logging-fstring-interpolation
+
+[FORMAT]
+max-line-length=120
