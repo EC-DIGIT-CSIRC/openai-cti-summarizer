@@ -142,6 +142,12 @@ Measure: per-step duration for each request
 
 Add tests as implementation grows. For every new .py file, make sure there is a decent coverage of test cases. 
 
+## Coding style
+
+Use PEP8 and the best current practices of Python coding.
+Remember: less code is more. The fewer lines of code - as long as things stay readable - the better.
+Small == beautiful.
+Easily digestable modules, unites and python files are better.
 
 ## Decision Summary
 
