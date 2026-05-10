@@ -33,3 +33,13 @@ def test_summary_to_jsonable_returns_model_dump():
     summary = CTISummary(summary="Only a summary.")
 
     assert summary_to_jsonable(summary)["summary"] == "Only a summary."
+
+
+def test_render_summary_markdown_includes_yara_rules():
+    summary = CTISummary(summary="Rule summary.", yara_rules=["rule test { condition: true }"])
+
+    rendered = render_summary_markdown(summary)
+
+    assert "## YARA Rules" in rendered
+    assert "```yara" in rendered
+    assert "rule test" in rendered

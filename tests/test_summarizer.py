@@ -1,11 +1,17 @@
 import asyncio
 
 import pytest
+from pydantic import SecretStr
 
-from app import summarizer
-from app.config import LLMSettings
+from app import schema, summarizer
+from app.config import LLMOutputMode, LLMSettings
 from app.schema import CTISummary
-from app.summarizer import CTISummarizer, LLMProviderError
+from app.summarizer import (
+    CTISummarizer,
+    LLMConfigurationError,
+    LLMOutputValidationError,
+    LLMProviderError,
+)
 
 
 class FakeUsage:
@@ -88,6 +94,163 @@ def test_summarizer_provider_error_without_fallback(monkeypatch):
     fake_agent.run = failing_run
 
     with pytest.raises(LLMProviderError, match="provider down"):
+        asyncio.run(
+            CTISummarizer(
+                LLMSettings(model="test-model"),
+                agent_factory=lambda model, output_type, kwargs: fake_agent,
+                model_factory=lambda settings: "test:model",
+            ).summarize("report text", "system prompt")
+        )
+
+
+def test_secret_value_handles_none_secret_and_plain_string():
+    assert summarizer._secret_value(None) is None
+    assert summarizer._secret_value(SecretStr("secret")) == "secret"
+    assert summarizer._secret_value("plain") == "plain"
+
+
+@pytest.mark.parametrize(
+    ("provider", "expected"),
+    [
+        ("openai", "openai:test-model"),
+        ("openrouter", "openrouter:test-model"),
+        ("ollama", "ollama:test-model"),
+        ("anthropic", "anthropic:test-model"),
+    ],
+)
+def test_build_pydantic_ai_model_returns_model_strings_without_explicit_provider_config(provider, expected):
+    assert summarizer._build_pydantic_ai_model(LLMSettings(provider=provider, model="test-model")) == expected
+
+
+@pytest.mark.parametrize(
+    ("settings_kwargs", "class_name"),
+    [
+        (
+            {"provider": "openai", "model": "gpt-4o-mini", "api_key": SecretStr("test-key")},
+            "OpenAIChatModel",
+        ),
+        (
+            {"provider": "azure", "model": "deployment", "azure_endpoint": "https://example.openai.azure.com/", "azure_api_key": SecretStr("test-key"), "azure_api_version": "2024-07-01-preview"},
+            "OpenAIChatModel",
+        ),
+        (
+            {"provider": "openrouter", "model": "openai/gpt-4o-mini", "api_key": SecretStr("test-key")},
+            "OpenRouterModel",
+        ),
+        (
+            {"provider": "ollama", "model": "llama3.2", "base_url": "http://localhost:11434/v1"},
+            "OllamaModel",
+        ),
+        (
+            {"provider": "anthropic", "model": "claude-3-5-sonnet-latest", "api_key": SecretStr("test-key")},
+            "AnthropicModel",
+        ),
+    ],
+)
+def test_build_pydantic_ai_model_constructs_explicit_provider_models(settings_kwargs, class_name):
+    model = summarizer._build_pydantic_ai_model(LLMSettings(**settings_kwargs))
+
+    assert type(model).__name__ == class_name
+
+
+def test_build_pydantic_ai_model_wraps_provider_configuration_errors():
+    with pytest.raises(LLMConfigurationError, match="Failed to configure LLM provider"):
+        summarizer._build_pydantic_ai_model(
+            LLMSettings(
+                provider="azure",
+                model="deployment",
+                azure_endpoint="https://example.openai.azure.com/openai/v1/",
+                azure_api_key=SecretStr("test-key"),
+                azure_api_version="2024-07-01-preview",
+            )
+        )
+
+
+@pytest.mark.parametrize("mode", [LLMOutputMode.NATIVE, LLMOutputMode.TOOL, LLMOutputMode.PROMPTED])
+def test_structured_output_type_supports_configured_modes(mode):
+    assert summarizer._structured_output_type(mode) is not None
+
+
+def test_structured_output_type_rejects_unknown_mode():
+    with pytest.raises(LLMConfigurationError, match="Unsupported output mode"):
+        summarizer._structured_output_type("bogus")
+
+
+def test_default_agent_factory_builds_agent():
+    agent = summarizer._default_agent_factory("openai:gpt-4o-mini", CTISummary, {"instructions": "prompt"})
+
+    assert agent is not None
+
+
+def test_grounding_instruction_includes_cached_hints(tmp_path, monkeypatch):
+    monkeypatch.setattr(schema, "TTP_CACHE_PATH", tmp_path / "cache" / "ttps.txt")
+    monkeypatch.setattr(schema, "THREAT_ACTOR_CACHE_PATH", tmp_path / "cache" / "threat_actors.txt")
+    schema.TTP_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    schema.TTP_CACHE_PATH.write_text("TA0001 - Initial Access\n", encoding="utf-8")
+    schema.THREAT_ACTOR_CACHE_PATH.write_text("APT28\n", encoding="utf-8")
+
+    instruction = summarizer._build_grounding_instruction(10)
+
+    assert "TA0001 - Initial Access" in instruction
+    assert "APT28" in instruction
+
+
+def test_usage_attr_returns_first_available_name():
+    class Usage:
+        response_tokens = 12
+
+    assert summarizer._usage_attr(Usage(), "output_tokens", "response_tokens") == 12
+    assert summarizer._usage_attr(Usage(), "missing") is None
+
+
+def test_summarizer_rejects_empty_text():
+    with pytest.raises(LLMOutputValidationError, match="Report text is empty"):
+        asyncio.run(
+            CTISummarizer(
+                LLMSettings(model="test-model"),
+                agent_factory=lambda model, output_type, kwargs: FakeAgent(CTISummary(summary="unused")),
+                model_factory=lambda settings: "test:model",
+            ).summarize("   ", "prompt")
+        )
+
+
+def test_summarizer_preserves_configuration_errors(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+
+    def fail_model_factory(settings):
+        raise LLMConfigurationError("bad config")
+
+    with pytest.raises(LLMConfigurationError, match="bad config"):
+        asyncio.run(
+            CTISummarizer(
+                LLMSettings(model="test-model"),
+                agent_factory=lambda model, output_type, kwargs: FakeAgent(CTISummary(summary="unused")),
+                model_factory=fail_model_factory,
+            ).summarize("report", "prompt")
+        )
+
+
+def test_summarizer_maps_agent_factory_error(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+
+    def fail_agent_factory(model, output_type, kwargs):
+        raise RuntimeError("agent init failed")
+
+    with pytest.raises(LLMProviderError, match="agent init failed"):
+        asyncio.run(
+            CTISummarizer(
+                LLMSettings(model="test-model"),
+                agent_factory=fail_agent_factory,
+                model_factory=lambda settings: "test:model",
+            ).summarize("report", "prompt")
+        )
+
+
+def test_summarizer_maps_invalid_output_to_validation_error(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+    fake_agent = FakeAgent({"not_summary": "missing required field"})
+
+    with pytest.raises(LLMOutputValidationError, match="schema validation"):
         asyncio.run(
             CTISummarizer(
                 LLMSettings(model="test-model"),

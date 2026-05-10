@@ -1,5 +1,8 @@
 from pathlib import Path
 
+import pytest
+import requests
+
 from app import schema
 
 
@@ -45,6 +48,17 @@ def test_fetch_valid_ttps_parses_attack_bundle_and_caches_results(tmp_path, monk
 
     payload = {
         "objects": [
+            "not a dict",
+            {
+                "type": "attack-pattern",
+                "name": " ",
+                "revoked": False,
+                "x_mitre_deprecated": False,
+                "x_mitre_domains": ["enterprise-attack"],
+                "external_references": [
+                    {"source_name": "mitre-attack", "external_id": "T1111"}
+                ],
+            },
             {
                 "type": "x-mitre-tactic",
                 "name": "Initial Access",
@@ -161,3 +175,74 @@ def test_cti_summary_uses_cached_grounding_hints_and_soft_normalization(tmp_path
         "Brand New Technique",
     ]
     assert summary.threat_actors == ["APT28", "Unknown Group"]
+
+
+def test_load_cache_returns_empty_for_missing_file(tmp_path, monkeypatch):
+    _configure_cache_paths(tmp_path, monkeypatch)
+
+    assert schema.load_ttps_from_cache() == []
+    assert schema.load_TAs_from_cache() == []
+
+
+def test_attack_helpers_cover_missing_references_and_unknown_sort_key():
+    assert schema._extract_attack_external_id({"external_references": []}, "TA") is None
+    assert (
+        schema._extract_attack_external_id(
+            {"external_references": [{"source_name": "other", "external_id": "TA0001"}]},
+            "TA",
+        )
+        is None
+    )
+    assert schema._attack_sort_key("Unknown Technique") == (2, 0, 0, "Unknown Technique")
+
+
+def test_normalize_grounded_values_handles_empty_and_duplicates():
+    assert schema._normalize_grounded_values([], ["APT28"]) == []
+    assert schema._normalize_grounded_values(["", "APT28", "apt28"], ["APT28"]) == ["APT28"]
+
+
+def test_apply_grounding_hints_ignores_missing_inputs():
+    field_schema = {"description": "Field."}
+
+    schema._apply_grounding_hints(None, ["APT28"], "actors")
+    schema._apply_grounding_hints(field_schema, [], "actors")
+
+    assert field_schema == {"description": "Field."}
+
+
+def test_fetch_valid_ttps_falls_back_to_cache_on_request_error(tmp_path, monkeypatch):
+    _configure_cache_paths(tmp_path, monkeypatch)
+    schema.TTP_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    schema.TTP_CACHE_PATH.write_text("TA0001 - Initial Access\n", encoding="utf-8")
+
+    def fail_get(*args, **kwargs):
+        raise requests.RequestException("network down")
+
+    monkeypatch.setattr(schema.requests, "get", fail_get)
+
+    assert schema.fetch_valid_ttps() == ["TA0001 - Initial Access"]
+
+
+def test_fetch_valid_ttps_raises_without_cache_on_empty_payload(tmp_path, monkeypatch):
+    _configure_cache_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(schema.requests, "get", lambda *args, **kwargs: DummyResponse(json_data={"objects": []}))
+
+    with pytest.raises(RuntimeError, match="Failed to fetch TTPs"):
+        schema.fetch_valid_ttps()
+
+
+def test_fetch_TAs_from_malpedia_falls_back_to_cache_on_empty_response(tmp_path, monkeypatch):
+    _configure_cache_paths(tmp_path, monkeypatch)
+    schema.THREAT_ACTOR_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    schema.THREAT_ACTOR_CACHE_PATH.write_text("APT28\n", encoding="utf-8")
+    monkeypatch.setattr(schema.requests, "get", lambda *args, **kwargs: DummyResponse(text="<html></html>"))
+
+    assert schema.fetch_TAs_from_malpedia() == ["APT28"]
+
+
+def test_fetch_TAs_from_malpedia_raises_without_cache(tmp_path, monkeypatch):
+    _configure_cache_paths(tmp_path, monkeypatch)
+    monkeypatch.setattr(schema.requests, "get", lambda *args, **kwargs: DummyResponse(text="<html></html>"))
+
+    with pytest.raises(RuntimeError, match="Failed to fetch threat actors"):
+        schema.fetch_TAs_from_malpedia()
