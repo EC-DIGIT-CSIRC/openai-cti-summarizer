@@ -233,7 +233,6 @@ class CTISummarizer:
         except Exception as exc:
             raise LLMProviderError(f"LLM request failed: {exc}") from exc
         model_settings = {
-            "temperature": self.settings.temperature,
             "timeout": self.settings.timeout_seconds,
         }
 

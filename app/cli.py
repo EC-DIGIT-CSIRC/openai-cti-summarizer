@@ -38,7 +38,6 @@ def _read_input(text: str | None, file_path: str | None, url: str | None) -> str
 @click.option("--azure-api-key", help="Azure OpenAI API key. Prefer environment variables for regular use.")
 @click.option("--azure-api-version", help="Azure OpenAI API version.")
 @click.option("--timeout-seconds", type=float, help="Provider timeout in seconds.")
-@click.option("--temperature", type=float, help="Sampling temperature.")
 @click.option("--output-mode", type=click.Choice([item.value for item in LLMOutputMode]), help="Structured output mode.")
 @click.option("--allow-output-fallback/--no-output-fallback", default=None, help="Retry with fallback output mode on provider failure.")
 @click.option("--prompt-grounding-hint-limit", type=int, help="Number of cache hints to add to the prompt.")
@@ -56,7 +55,6 @@ def main(
     azure_api_key: str | None,
     azure_api_version: str | None,
     timeout_seconds: float | None,
-    temperature: float | None,
     output_mode: str | None,
     allow_output_fallback: bool | None,
     prompt_grounding_hint_limit: int | None,
@@ -76,7 +74,6 @@ def main(
         azure_api_key=azure_api_key,
         azure_api_version=azure_api_version,
         timeout_seconds=timeout_seconds,
-        temperature=temperature,
         output_mode=output_mode,
         allow_output_fallback=allow_output_fallback,
         prompt_grounding_hint_limit=prompt_grounding_hint_limit,

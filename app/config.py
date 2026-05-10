@@ -44,7 +44,6 @@ class LLMSettings(BaseSettings):
     azure_api_version: str | None = None
     timeout_seconds: float = 60.0
     max_retries: int = 2
-    temperature: float = 0.1
     output_mode: LLMOutputMode = LLMOutputMode.NATIVE
     output_fallback_mode: LLMOutputMode = LLMOutputMode.TOOL
     allow_output_fallback: bool = False
