@@ -1,0 +1,986 @@
+Lazarus Group
+APT28
+Turla
+Cleaver
+APT1
+UNC2452
+APT41
+APT29
+CHRYSENE
+OilRig
+Silent Chollima
+APT40
+Sandworm
+APT32
+Kimsuky
+APT37
+Operation C-Major
+WageMole
+FIN11
+IRIDIUM
+TA505
+APT15
+APT33
+Equation Group
+MuddyWater
+APT35
+BlackTech
+Gamaredon Group
+APT27
+Molerats
+AridViper
+Charming Kitten
+FIN7
+HAZY TIGER
+Vanilla Tempest
+APT31
+DarkHotel
+Earth Lusca
+GALLIUM
+Operation Soft Cell
+APT3
+FIN6
+MUSTANG PANDA
+Rocket Kitten
+Tick
+APT17
+Cobalt
+DragonOK
+Hellsing
+Naikon
+QUILTED TIGER
+The Gorgon Group
+Tonto Team
+VICEROY TIGER
+TA428
+APT39
+GOLD CABIN
+HenBox
+POLONIUM
+UNC1878
+VENOM SPIDER
+WIZARD SPIDER
+APT12
+Callisto
+Earth Estries
+Evilnum
+Gelsemium
+Longhorn
+Lucky Cat
+Thrip
+[Unnamed group]
+DarkHydrus
+El Machete
+Handala
+LOTUS PANDA
+LYCEUM
+PLATINUM
+RANCOR
+RAZOR TIGER
+Red Menshen
+RomCom
+SideCopy
+SNOWGLOBE
+SWEED
+TA410
+Tortoiseshell
+UAC-0063
+Volt Typhoon
+YoroTrooper
+Aoqin Dragon
+APT-C-36
+APT-C-60
+APT18
+APT19
+APT21
+Dark Caracal
+DNSpionage
+DOPPEL SPIDER
+Earth Berberoka
+Evil Corp
+FIN8
+Ghostwriter
+GOLD DUPONT
+Greenbug
+GreyEnergy
+HAFNIUM
+IcePeony
+Inception Framework
+INDRIK SPIDER
+Larva-208
+MirrorFace
+MUMMY SPIDER
+PlushDaemon
+POISON CARP
+RansomHub
+Rocke
+Scarlet Mimic
+Silence group
+Sowbug
+Storm-1567
+TA2101
+TA578
+UNC1069
+UNC1860
+UNC2970
+UNC4393
+UNC5174
+Unfading Sea Haze
+Void Manticore
+Yanbian Gang
+1937CN
+Actor240524
+Alpha Spider
+Angry Likho
+ANTHROPOID SPIDER
+Antlion
+APT-C-12
+APT-C-27
+APT-C-34
+APT10
+APT16
+APT2
+APT23
+APT24
+APT42
+APT5
+APT9
+Bahamut
+Blackwood
+BRONZE HIGHLAND
+BuhTrap
+Caramel Tsunami
+Careto
+CeranaKeeper
+CL-STA-1009
+CopyKittens
+CoralRaider
+CosmicBeetle
+Cyber Av3ngers
+Cyber Serp
+DAGGER PANDA
+Danti
+Denim Tsunami
+Domestic Kitten
+DragonForce
+Dust Storm
+Earth Baxia
+Evasive Panda
+ExCobalt
+EXOTIC LILY
+Flax Typhoon
+GhostEmperor
+GOLD PRELUDE
+GOLD REBELLION
+GOLD WINTER
+GRIM SPIDER
+Groundbait
+Hacking Team
+Higaisa
+Hive0137
+Infy
+Iron Group
+LightBasin
+MageCart
+MALLARD SPIDER
+Mofang
+MONTY SPIDER
+MosesStaff
+MoustachedBouncer
+Mythic Likho
+NARWHAL SPIDER
+Nazar
+Nexus Zeta
+NoName057(16)
+Operation ShadowHammer
+Operation Sharpshooter
+Orangeworm
+Pacha Group
+Packrat
+Pink Sandstorm
+Poseidon Group
+PowerPool
+ProjectSauron
+PROMETHIUM
+Rebel Jackal
+RIDDLE SPIDER
+RipperSec
+SaintBear
+SCULLY SPIDER
+Sea Turtle
+SEXi
+SharpPanda
+SLIME29
+SloppyLemming
+SMOKY SPIDER
+SOLAR SPIDER
+STAC5143
+Stealth Falcon
+Storm-0249
+Storm-0494
+Storm-0501
+Storm-0506
+Storm-0826
+Storm-1113
+Swan Vector
+TA579
+TA866
+TAG-140
+TeamXRat
+TianWu
+TraderTraitor
+UAC-0006
+UAC-0050
+UAC-0149
+UAC-0226
+UNC215
+UNC3569
+UNC3973
+UNC5537
+UNC6353
+UNC6692
+Unit 8200
+UTA0178
+Void Arachne
+Void Blizzard
+Water Barghest
+Water Orthrus
+Webworm
+WET PANDA
+WildNeutron
+WindShift
+Winter Vivern
+WIRTE
+Xcatze
+313 Team
+Ababil of Minab
+Adrastea
+AeroBlade
+Aggressive Inventory Zombies
+ALLANITE
+Altahrea Team
+ALTDOS
+Altoufan Team
+Amaranth-Dragon
+ANDROMEDA SPIDER
+Anonymous64
+Anonymous KSA
+Anonymous Sudan
+AppMilad
+APT.3102
+APT14
+APT20
+APT22
+APT26
+APT30
+APT4
+APT43
+APT45
+APT6
+APT73
+APTIran
+ArcaneDoor
+Aslan Neferler Tim
+Asnarök
+AtlasCross
+Attor
+Avivore
+Awaken Likho
+Ayyıldız Tim
+AzzaSec
+BackdoorDiplomacy
+BadRory
+BAMBOO SPIDER
+BANISHED KITTEN
+BatShadow
+BazarCall
+Bearlyfy
+Beijing Group
+BelialDemon
+Belsen Group
+BiBiGun
+Bignosa
+BIG PANDA
+BITWISE SPIDER
+Blackatom
+Blackgear
+BlackJack
+Blackmeta
+BlackOasis
+Blacktail
+BladedFeline
+BladeHawk
+BlueBottle
+BlueHornet
+Blue Termite
+Blue Tsunami
+Bohrium
+Bondnet
+Boolka
+BOSON SPIDER
+BOSS SPIDER
+Boulder Bear
+BrazenBamboo
+BreachLaboratory
+BRONZE EDGEWOOD
+BRONZE SPIRAL
+BRONZE SPRING
+BRONZE STARLIGHT
+BRONZE VAPOR
+Budminer
+ByteToBreach
+Cadelle
+Caliente Bandits
+Calypso
+Camaro Dragon
+Caracal Kitten
+Carderbee
+CardinalLizard
+Carmine Tsunami
+CashRewindo
+ChainedShark
+Chamelgang
+Chaya_004
+Chernovite
+CiberInteligenciaSV
+CIRCUS SPIDER
+CL-STA-0043
+CL-STA-0048
+CL-STA-1087
+Clever Kitten
+CLOCKWORK SPIDER
+CloudSorcerer
+COBALT JUNO
+COBALT KATANA
+Codefinger
+Coinbase Cartel
+Cold River
+ComicForm
+Common Raven
+Confucious
+Conquerors Electronic Army
+Contagious Interview
+Copy-Paste
+Corsair Jackal
+Cosmic Lynx
+CostaRicto
+Cotton Sandstorm
+CoughingDown
+Crimson Collective
+CryptoChameleon
+CRYSTALRAY
+Cuboid Sandstorm
+Curious Gorge
+Curly COMrades
+Cutting Kitten
+Cyber.Anarchy.Squad
+CyberNiggers
+Cyber Alliance
+Cyber Army of Russia Reborn
+Cyber Berkut
+Cyber Caliphate Army
+Cyber fighters of Izz Ad-Din Al Qassam
+Cyber Islamic Resistance
+Cyber Partisans
+Cyber Toufan
+Daixin Team
+Dalbit
+Dancing Salome
+DangerousSavanna
+DarkCasino
+DarkGaboon
+DarkPink
+DarkRaaS
+DarkSpectre
+DarkVishnya
+Dark Basin
+Deadeye Jackal
+DefrayX
+Desorden Group
+DEV-0147
+DEV-0270
+DEV-0569
+DEV-0586
+DEV-0928
+DEV-0950
+DEV-1028
+DEXTOROUS SPIDER
+DiceyF
+DieNet
+DIZZY PANDA
+DragonBreath
+Dragonbridge
+DragonRank
+DragonSpark
+DriftingCloud
+DUNGEON SPIDER
+DustSquad
+Earth Alux
+Earth Freybug
+Earth Kapre
+Earth Kitsune
+Earth Krahang
+Earth Kurma
+Earth Lamia
+Earth Longzhi
+Earth Naga
+Earth Wendigo
+Earth Yako
+EC2 Grouper
+Edalat-e Ali
+Educated Manticore
+ELECTRIC PANDA
+ELOQUENT PANDA
+ELUSIVE COMET
+ENERGETIC BEAR
+Evilbyte
+EvilPost
+EvilTraffic
+EvilWeb
+Fail0verflow
+FASTCash
+Femwar02
+Ferocious Kitten
+FIN1
+FIN10
+FIN13
+FIN5
+Fishing Elephant
+FishMedley
+Flash Kitten
+FlyingYeti
+Flying Kitten
+FOXY PANDA
+Fox Kitten
+FrostyNeighbor
+FunkSec
+FusionCore
+Fxmsp
+Gallmaker
+GamaCopy
+GambleForce
+GC01
+GC02
+GCMAN
+GhostNet
+GhostR
+GhostRedirector
+GhostSec
+Ghost Jackal
+GIBBERISH PANDA
+Gitloker
+Gnosticplayers
+GOBLIN PANDA
+GOFFEE
+GoldenJackal
+GoldFactory
+GOLD BURLAP
+GOLD EVERGREEN
+GOLD FAIRFAX
+GOLD FLANDERS
+GOLD GALLEON
+GOLD GARDEN
+GOLD MANSARD
+GOLD NORTHFIELD
+GOLD RIVERVIEW
+GOLD SKYLINE
+GOLD SOUTHFIELD
+GOLD SYMPHONY
+GOLD WATERFALL
+GopherWhisper
+Gorilla
+GozNym
+GrayBravo
+GrayCharlie
+Grayling
+Gray Sandstorm
+GreedyBear
+GreenSpot
+GREF
+Group5
+GTFire
+GTG-1002
+Guacamaya
+GURU SPIDER
+Hagga
+Head Mare
+HellHounds
+HexagonalRodent
+Hezb
+HiddenArt
+HikkI-Chan
+HIVE-0145
+Hive0117
+HollowQuill
+HomeLand Justice
+Honeybee
+HookAds
+Houken
+HOUND SPIDER
+HummingBad
+Hunt3r Kill3rs
+HURRICANE PANDA
+IMPERSONATING PANDA
+IndigoZebra
+INDOHAXSEC TEAM
+Infrastructure Destruction Squad
+INJ3CTOR3
+IntelBroker
+InvisiMole
+IRLeaks
+IronErn440
+IronHusky
+ItaDuke
+Jabaroot
+JavaGhost
+JINX-0126
+JuiceLedger
+Kairos
+Karakurt
+Karkadann
+Kasablanka
+KAX17
+Kazu
+Keksec
+KelvinSecurity
+Keymous+
+Killnet
+Kinsing
+Kiss-a-Dog
+KromSec
+Krybit
+LabHost
+Lamashtu
+Lancefly
+LAPSUS
+Larva-24005
+Larva-24010
+Larva-26002
+Larva‑25012
+Libyan Scorpions
+Lifting Zmiy
+LilacSquid
+Lilac Typhoon
+LIMINAL PANDA
+LinkC Pub
+LofyGang
+LongNosedGoblin
+LulzSec Black
+LUNAR SPIDER
+Luna Moth
+luoxk
+Madi
+Magic Kitten
+MAGNETIC SPIDER
+MalKamak
+Malsmoke
+Malteiro
+Mana Team
+Markopolo
+Massgrave
+Metador
+MIMIC SPIDER
+Mirage Tiger
+Mocha Manakin
+ModifiedElephant
+Mogilevich
+Molatori
+MoneyTaker
+Mora_001
+MORH4x
+Moshen Dragon
+Moskalvzapoe
+MurenShark
+Mustard Tempest
+N4ughtysecTU
+Nam3L3ss
+Natohub
+NB65
+NEODYMIUM
+NetRunnerPR
+NewsPenguin
+Nickel Alley
+NightEagle
+Night Dragon
+Nitro
+NOCTURNAL SPIDER
+NOMAD PANDA
+NOTROBIN
+Nullbulge
+OilAlpha
+OldGremlin
+OnionDog
+Opal Sleet
+Operation BugDrop
+Operation Cobalt Whisper
+Operation Comando
+Operation DRBControl
+Operation Emmental
+Operation ForumTroll
+Operation Ghoul
+Operation Kabar Cobra
+Operation Parliament
+Operation Poison Needles
+Operation Red Signature
+Operation Shadow Force
+Operation Triangulation
+Operation WizardOpium
+Operation Wocao
+OurMine
+OUTLAW SPIDER
+OverFlame
+OVERLORD SPIDER
+PALE PANDA
+PARINACOTA
+PassCV
+Patched Lightning
+PayTool
+Pearl Sleet
+People's Cyber Army of Russia
+PerSwaysion
+PhantomControl
+Phlox Tempest
+Pickaxe
+PINCHY SPIDER
+PIZZO SPIDER
+PoisonSeed
+POISONUS PANDA
+Predatory Sparrow
+PREDATOR PANDA
+ProCC
+Prolific Puma
+Prophet Spider
+puNK-003
+PurpleHaze
+R00tK1T
+RADIO PANDA
+RaHDit
+RansomHouse
+RansomVC
+Raspberry Typhoon
+RASPITE
+RATPAK SPIDER
+Reckless Rabbit
+Red-Lili
+RedAlpha
+RedDelta
+RedEcho
+Redfly
+RedGolf
+RedJuliett
+RedKitten
+RedStinger
+Red Charon
+Red Dev 17
+Red Nue
+REF2924
+REF5961
+REF7707
+ResumeLooters
+Returned Libra
+RevengeHotels
+RGB-TEAM
+Roaming Mantis
+Roaming Tiger
+RTM
+RUBYCARP
+Ruby Sleet
+RuskiNet
+Ruthless Rabbit
+Saad Tycoon
+SABRE PANDA
+SALTY SPIDER
+SAMBASPIDER
+SAMURAI PANDA
+SandCat
+Sandman APT
+Sands Casino
+Sath-ı Müdafaa
+ScamClub
+Scarab
+SCARLETEEL
+Scarred Manticore
+Scattered Canary
+Scattered Spider
+ScreamedJungle
+Scripted Sparrow
+SHADOW-AETHER-015
+SHADOW-VOID-042
+ShadowSyndicate
+Shadow Network
+ShadyPanda
+ShaggyPanther
+Shahid Hemmat
+Shamoon Group
+SHARK SPIDER
+ShinyHunters
+ShroudedSnooper
+SiegedSec
+Siesta
+Silent Librarian
+SilitNetwork
+SILKFIN AGENCY
+SilkSpecter
+SilverFish
+SilverTerrier
+Sima
+SINGING SPIDER
+SingularityMD
+Sinobi
+SkidSec
+Slingshot
+SlopAds
+Smishing Triad
+SmugX
+Snake Wine
+SneakyChef
+Solntsepek
+SongXY
+Sp1d3r
+SpaceBears
+SparklingGoblin
+SPICY PANDA
+SPIKEDWINE
+STARDUST CHOLLIMA
+Stargazer Goblin
+Starry Addax
+Storm-0062
+Storm-0324
+Storm-0381
+Storm-0473
+Storm-0530
+Storm-0539
+Storm-0558
+Storm-0829
+Storm-0835
+Storm-0867
+Storm-0940
+Storm-1044
+Storm-1084
+Storm-1099
+Storm-1101
+Storm-1133
+Storm-1152
+Storm-1167
+Storm-1175
+Storm-1283
+Storm-1286
+Storm-1295
+Storm-1516
+Storm-1575
+Storm-1674
+Storm-1679
+Storm-1747
+Storm-1849
+Storm-1977
+Storm-2077
+Storm-2139
+Storm-2372
+Storm-2460
+Storm-2603
+Storm-2657
+Storm Cloud
+StucxTeam
+Sunglow Blizzard
+SYLHET GANG-SG
+TA2536
+TA2541
+TA2552
+TA2719
+TA2722
+TA2723
+TA2725
+TA402
+TA406
+TA444
+TA453
+TA455
+TA459
+TA482
+TA4903
+TA499
+TA516
+TA530
+TA547
+TA554
+TA555
+TA558
+TA570
+TA571
+TA575
+TA577
+TA584
+TA800
+TA829
+TAG-112
+TAG-124
+TAG-28
+TAG-56
+Taidoor
+TaskMasters
+Team-Xecuter
+Team46
+TeamPCP
+TeamSpy Crew
+TeamTNT
+Teleboyi
+TEMP.Hermit
+TEMP.Veles
+TEMPER PANDA
+TempTick
+TEMP_Heretic
+TERBIUM
+TEST PANDA
+TetrisPhantom
+TheDarkOverlord
+TheWizards
+The Big Bang
+The Gentlemen
+The Shadow Brokers
+Threatsec
+Threat Actor 888
+TIDRONE
+TiltedTemple
+TINY SPIDER
+ToddyCat
+TOXCAR CYBER TEAM
+TOXIC PANDA
+TRACER KITTEN
+TRAVELING SPIDER
+TridentLocker
+TRIPLESTRENGTH
+Tstark
+TunnelSnake
+TurkHackTeam
+TwoSail Junk
+UAC-0020
+UAC-0094
+UAC-0099
+UAC-0102
+UAC-0118
+UAC-0154
+UAC-0184
+UAC-0185
+UAC-0194
+UAC-0215
+UAC-0219
+UAC-0227
+UAC-0239
+UAC-0241
+UAC-0245
+UAT-10362
+UAT-10608
+UAT-5394
+UAT-5918
+UAT-6382
+UAT-7237
+UAT-8099
+UAT-8302
+UAT-8616
+UAT-8837
+UAT-9244
+UAT-9686
+UAT-9921
+Ukrainian Cyber Alliance
+UNC1549
+UNC2447
+UNC2465
+UNC2565
+UNC2630
+UNC2659
+UNC2717
+UNC2814
+UNC3524
+UNC3886
+UNC3890
+UNC4191
+UNC4487
+UNC4536
+UNC4540
+UNC4736
+UNC4841
+UNC4990
+UNC5266
+UNC5291
+UNC5325
+UNC5330
+UNC5337
+UNC5342
+UNC5820
+UNC6032
+UNC6040
+UNC6148
+UNC6201
+UNC6293
+UNC6384
+UNC6395
+UNC6426
+UNC6485
+UNC6619
+UNC6671
+UNC6691
+UNG0002
+UNG0901
+UNION PANDA
+UNION SPIDER
+UNK_AcademicFlare
+UNK_DropPitch
+UNK_FistBump
+UNK_RemoteRogue
+UNK_SparkyCarp
+Unnamed Actor
+UnsolicitedBooker
+Urpage
+USDoD
+UserSec
+UTA0218
+UTA0352
+UTA0355
+UTA0388
+UTG-Q-008
+UTG-Q-010
+Velvet Tempest
+ViceLeaker
+VICE SPIDER
+ViciousTrap
+Vicious Panda
+Viking Jackal
+VIKING SPIDER
+Void Balaur
+Void Banshee
+Void Rabisu
+Volatile Cedar
+VulzSecTeam
+WARP PANDA
+Wassonite
+Watchdog
+Water Bakunawa
+Water Curupira
+Water Gamayun
+Water Kurita
+Water Labbu
+Water Makara
+Water Saci
+Water Sigbin
+WeedSec
+WeRedEvils
+WhiteCobra
+Whitefly
+White Bear
+WildCard
+WildPressure
+WIP19
+Witchetty
+WOLF SPIDER
+Worok
+XakNet
+XDSpy
+Xiaoqiying
+XinXin
+Z-Pentest Alliance
+Zarya
+ZeroSevenGroup
+ZOMBIE SPIDER
+ZooPark
+[Vault 7/8]
+Stealth Mango and Tangelo
