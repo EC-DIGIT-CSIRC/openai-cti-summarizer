@@ -49,7 +49,7 @@ services:
       - ./VERSION.txt:/app/VERSION.txt:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.openai-summarizer.rule=Host(`munch-cti.lo-res.org`)"
+      - "traefik.http.routers.openai-summarizer.rule=Host(`${TRAEFIK_HOST}`)"
       - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
       - "traefik.http.routers.openai-summarizer.tls.certresolver=myresolver"
       - "traefik.http.services.openai-summarizer.loadbalancer.server.port=9999"
