@@ -1,0 +1,42 @@
+name: Semgrep
+
+on:
+  pull_request:
+    paths:
+      - "app/**/*.py"
+      - "tests/**/*.py"
+      - "Makefile"
+      - ".github/workflows/semgrep.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "app/**/*.py"
+      - "tests/**/*.py"
+      - "Makefile"
+      - ".github/workflows/semgrep.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ "3.13" ]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install Semgrep
+        run: python -m pip install --upgrade pip semgrep
+
+      - name: Run Semgrep
+        run: semgrep --config p/default --metrics off --disable-version-check --exclude .venv .github tests
