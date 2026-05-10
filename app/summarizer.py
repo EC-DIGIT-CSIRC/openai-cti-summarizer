@@ -17,7 +17,7 @@ class Summarizer:
 
     client: openai._base_client.BaseClient
 
-    def __init__(self, model: str, max_tokens: int, system_prompt: str = "", go_azure: bool = False, output_json: bool = False):
+    def __init__(self, model: str, max_tokens: int = 264000, system_prompt: str = "", go_azure: bool = False, output_json: bool = False):
         if system_prompt:
             self.system_prompt = system_prompt
         else:
@@ -72,10 +72,10 @@ class Summarizer:
                 log.info("Using MS AZURE!")
                 response = self.client.chat.completions.create(model=os.environ['ENGINE'],
                                                                messages=messages,
-                                                               temperature=0.3,
-                                                               top_p=0.95,
+                                                               # temperature=0.3,
+                                                               # top_p=0.95,
                                                                stop=None,
-                                                               max_tokens=self.max_tokens,
+                                                               # max_tokens=self.max_tokens,
                                                                n=1)
             else:       # go directly via OpenAI's API
                 log.info("Using OpenAI directly!")
@@ -85,10 +85,10 @@ class Summarizer:
                     response_format = None
                 response = self.client.chat.completions.create(model=self.model,
                                                                messages=messages,
-                                                               temperature=0.3,
-                                                               top_p=0.95,
+                                                               # temperature=0.3,
+                                                               # top_p=0.95,
                                                                stop=None,
-                                                               max_tokens=self.max_tokens,
+                                                               # max_tokens=self.max_tokens,
                                                                response_format=response_format,
                                                                n=1)
 

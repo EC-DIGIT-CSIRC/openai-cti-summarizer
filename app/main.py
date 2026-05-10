@@ -72,8 +72,7 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(HTTPSRedirectMiddleware)
 
-summarizer = Summarizer(go_azure=GO_AZURE, model=OPENAI_MODEL,
-                        max_tokens=8192, output_json=OUTPUT_JSON)
+summarizer = Summarizer(go_azure=GO_AZURE, model=OPENAI_MODEL, output_json=OUTPUT_JSON)
 
 
 async def fetch_text_from_url(url: str) -> str:
@@ -93,7 +92,7 @@ async def fetch_text_from_url(url: str) -> str:
 @app.get("/", response_class=HTMLResponse)
 def get_index(request: Request, username: str = Depends(get_current_username)):
     """Return the default page."""
-    return templates.TemplateResponse("index.html", {"request": request, "system_prompt": os.environ['SYSTEM_PROMPT'], "username": username})
+    return templates.TemplateResponse(request, "index.html", {"request": request, "system_prompt": os.environ['SYSTEM_PROMPT'], "username": username})
 
 
 def convert_pdf_to_markdown(filename: str) -> str:
@@ -145,7 +144,7 @@ async def index(request: Request,           # request object
         log.error("no pdffile, no text, no url. Bailing out.")
         error = "Expected either url field or text field or a PDF file. Please specify one at least."
         result = None
-        return templates.TemplateResponse("index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
+        return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
 
     summarizer.model = model
     summarizer.max_tokens = token_count
@@ -154,7 +153,7 @@ async def index(request: Request,           # request object
         try:
             text = await fetch_text_from_url(url)
         except Exception as ex:
-            return templates.TemplateResponse("index.html", {"request": request, "text": url, "system_prompt": system_prompt, "result": f"Could not fetch URL. Reason {str(ex)}", "success": False}, status_code=400)
+            return templates.TemplateResponse(request, "index.html", {"request": request, "text": url, "system_prompt": system_prompt, "result": f"Could not fetch URL. Reason {str(ex)}", "success": False}, status_code=400)
 
     elif pdffile:
         log.warning("we got a pdffile")
@@ -172,7 +171,7 @@ async def index(request: Request,           # request object
             # Cleanup the temporary file
             os.unlink(tmp_pdf_path)
         except Exception as ex:
-            return templates.TemplateResponse("index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": f"Could not process the PDF file. Reason {str(ex)}", "success": False}, status_code=400)
+            return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": f"Could not process the PDF file. Reason {str(ex)}", "success": False}, status_code=400)
 
     # we got the text from the URL or the pdffile was converted... now check if we should actually summarize
     if DRY_RUN:
@@ -182,10 +181,10 @@ async def index(request: Request,           # request object
         result, error = summarizer.summarize(text, system_prompt)
 
     if error:
-        return templates.TemplateResponse("index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
+        return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
 
     result = markdown.markdown(result)
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request, "index.html", {
         "request": request,
         "text": text,
         "system_prompt": system_prompt,
