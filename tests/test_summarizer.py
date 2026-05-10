@@ -216,6 +216,17 @@ def test_grounding_instruction_includes_cached_hints(tmp_path, monkeypatch):
     assert "APT28" in instruction
 
 
+def test_summarizer_instructions_include_yara_author_and_validation_note():
+    instructions = CTISummarizer(
+        LLMSettings(model="test-model"),
+        agent_factory=lambda model, output_type, kwargs: FakeAgent(_summary()),
+        model_factory=lambda settings: "test:model",
+    )._build_instructions("system prompt")
+
+    assert summarizer.YARA_AUTHOR in instructions
+    assert summarizer.YARA_AI_VALIDATION_NOTE in instructions
+
+
 def test_usage_attr_returns_first_available_name():
     class Usage:
         response_tokens = 12

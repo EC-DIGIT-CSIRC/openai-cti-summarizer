@@ -7,6 +7,11 @@ from typing import Any
 
 from .schema import CTISummary
 
+YARA_AUTHOR = "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer"
+YARA_AI_VALIDATION_NOTE = (
+    "This set of YARA rules was AI generated and absolutely needs human validation."
+)
+
 
 def _append_list(lines: list[str], title: str, values: list[str]) -> None:
     if not values:
@@ -39,7 +44,16 @@ def render_summary_markdown(summary: CTISummary) -> str:
     lines.extend(["```", ""])
 
     if summary.yara_rules:
-        lines.extend(["## YARA Rules", ""])
+        lines.extend(
+            [
+                "## YARA Rules",
+                "",
+                f"Author: {YARA_AUTHOR}",
+                "",
+                f"Note: {YARA_AI_VALIDATION_NOTE}",
+                "",
+            ]
+        )
         for rule in summary.yara_rules:
             lines.extend(["```yara", rule.strip(), "```", ""])
 

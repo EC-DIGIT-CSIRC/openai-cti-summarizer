@@ -1,4 +1,9 @@
-from app.rendering import render_summary_markdown, summary_to_jsonable
+from app.rendering import (
+    YARA_AI_VALIDATION_NOTE,
+    YARA_AUTHOR,
+    render_summary_markdown,
+    summary_to_jsonable,
+)
 from app.schema import CTISummary, Indicator
 
 
@@ -55,5 +60,7 @@ def test_render_summary_markdown_includes_yara_rules():
     rendered = render_summary_markdown(summary)
 
     assert "## YARA Rules" in rendered
+    assert YARA_AUTHOR in rendered
+    assert YARA_AI_VALIDATION_NOTE in rendered
     assert "```yara" in rendered
     assert "rule test" in rendered

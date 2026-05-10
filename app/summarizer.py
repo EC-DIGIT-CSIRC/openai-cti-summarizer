@@ -9,6 +9,7 @@ from typing import Any, Callable
 from pydantic import ValidationError
 
 from .config import LLMOutputMode, LLMProvider, LLMSettings
+from .rendering import YARA_AI_VALIDATION_NOTE, YARA_AUTHOR
 from .schema import CTISummary
 from .settings import log
 
@@ -271,7 +272,9 @@ class CTISummarizer:
         guardrails = (
             "Return only facts supported by the report. Use empty lists when a section is not "
             "supported. Keep yara_rules empty unless the report contains enough concrete "
-            "strings, conditions, and context to support useful candidate rules."
+            "strings, conditions, and context to support useful candidate rules. If you propose "
+            f"any YARA rule, include author metadata naming {YARA_AUTHOR} and include this note "
+            f"in or next to the rule: {YARA_AI_VALIDATION_NOTE}"
         )
         return "\n\n".join(part for part in (base_prompt, grounding, guardrails) if part)
 
