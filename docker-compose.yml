@@ -36,14 +36,17 @@ services:
       args:
         - VERSION=${VERSION}
     environment:
-      PYTHON_PATH: /app
+      PYTHONPATH: /app
     env_file: .env
     ports:
       - "9001:9999"
     dns: 8.8.8.8
     # network_mode: host
     volumes:
-      - ./app:/app
+      - ./app:/app/app
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./VERSION.txt:/app/VERSION.txt:ro
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.openai-summarizer.rule=Host(`munch-cti.lo-res.org`)"

@@ -1,25 +1,23 @@
-FROM python:3.13-bullseye
+FROM python:3.13-slim
 
-# create a working directory
-RUN mkdir /app
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    UV_COMPILE_BYTECODE=1 \
+    UV_LINK_MODE=copy
+
 WORKDIR /app
 
-# copy the requirements.txt file
-COPY requirements.txt .
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# install the dependencies
-RUN pip install -r requirements.txt
+COPY pyproject.toml uv.lock README.md VERSION.txt ./
+RUN uv sync --frozen --no-dev
 
-# copy the main files
-COPY app /app
-COPY templates /templates
-COPY static /static
-COPY .env /
-COPY VERSION.txt  /
+COPY app ./app
+COPY templates ./templates
+COPY static ./static
 
 # expose the port for the FastAPI application
 EXPOSE 9999
 
 # run the FastAPI application
-CMD ["uvicorn", "main:app", "--access-log", "--reload", "--host", "0.0.0.0", "--port", "9999"]
-
+CMD ["uv", "run", "--no-sync", "uvicorn", "app.main:app", "--access-log", "--host", "0.0.0.0", "--port", "9999"]
