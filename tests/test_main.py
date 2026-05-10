@@ -27,7 +27,10 @@ class FakeSummarizer:
             CTISummary(
                 summary=f"Summarized {text[:10]}",
                 key_points=[system_prompt or "default prompt"],
+                ttps=[],
                 threat_actors=["APT28"],
+                confidence_score=0.8,
+                report_metadata={"source": "test"},
             )
         )
 

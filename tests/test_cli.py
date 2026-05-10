@@ -25,7 +25,15 @@ class FakeSummarizer:
         self.settings = settings
 
     async def summarize(self, text, system_prompt=None):
-        return FakeResult(CTISummary(summary=f"CLI {text[:10]}", key_points=[system_prompt or ""]))
+        return FakeResult(
+            CTISummary(
+                summary=f"CLI {text[:10]}",
+                key_points=[system_prompt or ""],
+                ttps=[],
+                confidence_score=0.8,
+                report_metadata={"source": "cli-test"},
+            )
+        )
 
 
 class FailingSummarizer:

@@ -240,19 +240,25 @@ class Indicator(BaseModel):
 
 class CTISummary(BaseModel):
     summary: str = Field(..., description="A short summary of the CTI report.")
-    key_points: List[str] = Field(default_factory=list, description="A list of key points extracted from the report.")
+    key_points: List[str] = Field(..., description="A list of key points extracted from the report.")
     ttps: List[str] = Field(
-        default_factory=list,
+        ...,
         description="A list of Tactics, Techniques, and Procedures (TTPs) mentioned in the report. Prefer canonical ATT&CK identifiers and names when possible.",
     )
-    indicators: List[Indicator] = Field(default_factory=list, description="A list of Indicators of Compromise (IOCs) mentioned in the report.")
-    threat_actors: List[str] = Field(
-        default_factory=list,
+    indicators: Optional[List[Indicator]] = Field(
+        None,
+        description="A list of Indicators of Compromise (IOCs) mentioned in the report.",
+    )
+    threat_actors: Optional[List[str]] = Field(
+        None,
         description="A list of threat actors mentioned in the report. Prefer the cached Malpedia common names when they match the report.",
     )
-    confidence_score: Optional[float] = Field(None, description="A score indicating the confidence level of the extracted information.")
-    report_metadata: Optional[dict] = Field(None, description="Additional metadata about the report (e.g., source, date, etc.).")
-    yara_rules: List[str] = Field(default_factory=list, description="A list of YARA rules generated based on the report.")
+    confidence_score: float = Field(..., description="A score indicating the confidence level of the extracted information.")
+    report_metadata: dict = Field(..., description="Additional metadata about the report (e.g., source, date, etc.).")
+    yara_rules: Optional[List[str]] = Field(
+        None,
+        description="A list of YARA rules generated based on the report.",
+    )
 
     @field_validator("ttps")
     @classmethod
@@ -261,7 +267,9 @@ class CTISummary(BaseModel):
 
     @field_validator("threat_actors")
     @classmethod
-    def _normalize_threat_actors(cls, values: List[str]) -> List[str]:
+    def _normalize_threat_actors(cls, values: Optional[List[str]]) -> Optional[List[str]]:
+        if values is None:
+            return None
         return _normalize_grounded_values(values, load_TAs_from_cache())
 
     @classmethod

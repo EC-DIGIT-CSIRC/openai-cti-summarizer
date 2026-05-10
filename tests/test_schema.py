@@ -164,10 +164,13 @@ def test_cti_summary_uses_cached_grounding_hints_and_soft_normalization(tmp_path
 
     summary = schema.CTISummary(
         summary="Test summary",
+        key_points=[],
+        indicators=None,
         ttps=["t1055.011", "Brand New Technique"],
         threat_actors=["apt28", "Unknown Group"],
-        confidence_score=None,
-        report_metadata=None,
+        confidence_score=0.7,
+        report_metadata={},
+        yara_rules=None,
     )
 
     assert summary.ttps == [
@@ -175,6 +178,31 @@ def test_cti_summary_uses_cached_grounding_hints_and_soft_normalization(tmp_path
         "Brand New Technique",
     ]
     assert summary.threat_actors == ["APT28", "Unknown Group"]
+    assert summary.indicators is None
+    assert summary.yara_rules is None
+
+
+def test_cti_summary_requires_core_fields():
+    with pytest.raises(ValueError):
+        schema.CTISummary(summary="Missing required fields")
+
+
+def test_cti_summary_allows_empty_ttps_and_nullable_optional_lists():
+    summary = schema.CTISummary(
+        summary="Test summary",
+        key_points=["Required key point"],
+        ttps=[],
+        indicators=None,
+        threat_actors=None,
+        confidence_score=0.2,
+        report_metadata={"source": "unit-test"},
+        yara_rules=None,
+    )
+
+    assert summary.ttps == []
+    assert summary.indicators is None
+    assert summary.threat_actors is None
+    assert summary.report_metadata == {"source": "unit-test"}
 
 
 def test_load_cache_returns_empty_for_missing_file(tmp_path, monkeypatch):

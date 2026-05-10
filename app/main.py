@@ -164,6 +164,9 @@ async def index(request: Request,           # request object
         summary = CTISummary(
             summary="This is a sample response because DRY_RUN is enabled.",
             key_points=["No request was sent to an LLM provider."],
+            ttps=[],
+            confidence_score=1.0,
+            report_metadata={"mode": "dry_run"},
         )
     else:
         try:

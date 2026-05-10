@@ -39,10 +39,31 @@ class FakeAgent:
         return FakeRunResult(self.output)
 
 
+def _summary(**overrides):
+    data = {
+        "summary": "Test summary.",
+        "key_points": [],
+        "ttps": [],
+        "confidence_score": 0.5,
+        "report_metadata": {},
+    }
+    data.update(overrides)
+    return CTISummary(**data)
+
+
 def test_summarizer_returns_validated_summary_and_logs_usage(monkeypatch, caplog):
     caplog.set_level("INFO")
     monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
-    fake_agent = FakeAgent({"summary": "APT28 activity.", "threat_actors": ["APT28"]})
+    fake_agent = FakeAgent(
+        {
+            "summary": "APT28 activity.",
+            "key_points": [],
+            "ttps": [],
+            "threat_actors": ["APT28"],
+            "confidence_score": 0.8,
+            "report_metadata": {},
+        }
+    )
 
     result = asyncio.run(
         CTISummarizer(
@@ -66,7 +87,7 @@ def test_summarizer_retries_with_fallback_when_enabled(monkeypatch):
         calls.append(kwargs)
         if len(calls) == 1:
             raise RuntimeError("native unsupported")
-        return FakeAgent(CTISummary(summary="Fallback worked."))
+        return FakeAgent(_summary(summary="Fallback worked."))
 
     result = asyncio.run(
         CTISummarizer(
@@ -84,7 +105,7 @@ def test_summarizer_provider_error_without_fallback(monkeypatch):
     monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
 
     def agent_factory(model, output_type, kwargs):
-        return FakeAgent(CTISummary(summary="unused"))
+        return FakeAgent(_summary(summary="unused"))
 
     fake_agent = agent_factory(None, None, {})
 
@@ -208,7 +229,7 @@ def test_summarizer_rejects_empty_text():
         asyncio.run(
             CTISummarizer(
                 LLMSettings(model="test-model"),
-                agent_factory=lambda model, output_type, kwargs: FakeAgent(CTISummary(summary="unused")),
+                agent_factory=lambda model, output_type, kwargs: FakeAgent(_summary(summary="unused")),
                 model_factory=lambda settings: "test:model",
             ).summarize("   ", "prompt")
         )
@@ -224,7 +245,7 @@ def test_summarizer_preserves_configuration_errors(monkeypatch):
         asyncio.run(
             CTISummarizer(
                 LLMSettings(model="test-model"),
-                agent_factory=lambda model, output_type, kwargs: FakeAgent(CTISummary(summary="unused")),
+                agent_factory=lambda model, output_type, kwargs: FakeAgent(_summary(summary="unused")),
                 model_factory=fail_model_factory,
             ).summarize("report", "prompt")
         )

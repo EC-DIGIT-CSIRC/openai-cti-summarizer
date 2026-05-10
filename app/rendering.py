@@ -30,15 +30,13 @@ def render_summary_markdown(summary: CTISummary) -> str:
             lines.append(f"| {indicator.type} | {indicator.value} |")
         lines.append("")
 
-    _append_list(lines, "Threat Actors", summary.threat_actors)
+    _append_list(lines, "Threat Actors", summary.threat_actors or [])
 
-    if summary.confidence_score is not None:
-        lines.extend(["## Confidence", "", f"{summary.confidence_score}", ""])
+    lines.extend(["## Confidence", "", f"{summary.confidence_score}", ""])
 
-    if summary.report_metadata:
-        lines.extend(["## Report Metadata", "", "```json"])
-        lines.append(json.dumps(summary.report_metadata, indent=2, sort_keys=True))
-        lines.extend(["```", ""])
+    lines.extend(["## Report Metadata", "", "```json"])
+    lines.append(json.dumps(summary.report_metadata, indent=2, sort_keys=True))
+    lines.extend(["```", ""])
 
     if summary.yara_rules:
         lines.extend(["## YARA Rules", ""])
