@@ -23,3 +23,20 @@ Aenean vel elit scelerisque mauris. Leo vel fringilla est ullamcorper eget nulla
 
 Ipsum dolor sit amet consectetur adipiscing elit ut aliquam. Purus sit amet luctus venenatis lectus magna fringilla. Pulvinar neque laoreet suspendisse interdum consectetur libero id faucibus nisl. Nulla facilisi morbi tempus iaculis urna id volutpat lacus laoreet. Orci dapibus ultrices in iaculis nunc sed augue lacus. Nulla facilisi nullam vehicula ipsum a arcu cursus vitae congue. Velit egestas dui id ornare arcu odio ut sem nulla. Sed odio morbi quis commodo. Sagittis orci a scelerisque purus semper eget duis at tellus. Nunc id cursus metus aliquam eleifend mi in nulla. Sit amet nisl suscipit adipiscing bibendum est ultricies. Felis eget nunc lobortis mattis aliquam.
 """
+
+
+def strtobool(value: str) -> bool:
+    if isinstance(value, bool):
+        return value
+
+    value = value.lower()
+
+    if value in {"y", "yes", "t", "true", "on", "1"}:
+        return True
+
+    if value in {"n", "no", "f", "false", "off", "0"}:
+        return False
+
+    raise ValueError(f"Invalid truth value: {value}")
+
+

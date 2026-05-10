@@ -3,7 +3,7 @@ import os
 import sys
 import tempfile
 from urllib.parse import urlparse
-from distutils.util import strtobool        # pylint: disable=deprecated-module
+from misc import strtobool
 
 import requests
 
@@ -41,10 +41,10 @@ except Exception as e:
 app = FastAPI(version=VERSION)
 templates = Jinja2Templates(directory="/templates")
 app.mount("/static", StaticFiles(directory="/static"), name="static")
-GO_AZURE = bool(strtobool(os.getenv('USE_AZURE', 'true')))
+GO_AZURE = bool(strtobool(os.getenv('USE_MS_AZURE', 'false')))
 OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false')))
 DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
-OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-3.5-turbo')
+OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-5.4-mini')
 
 # First detect if we should invoke OpenAI via MS Azure or directly
 try:

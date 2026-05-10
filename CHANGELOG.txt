@@ -1,3 +1,10 @@
+Version 0.6 (2026/5/10)
+==========================
+
+* Use recent openai models
+* remove strtobool from disutils
+* bug in parsing env var USE_MS_AZURE
+
 Version 0.5 (204/3/19)
 ==========================
 

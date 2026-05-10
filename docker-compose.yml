@@ -1,30 +1,30 @@
 services:
-  # traefik reverse proxy
-  traefik:
-    image: traefik:v2.10
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--providers.docker.exposedbydefault=false"
-      - "--entrypoints.web.address=:80"
-      - "--entrypoints.websecure.address=:443"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
-      - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.myresolver.acme.email=aaron+letsencrypt@lo-res.org"
-      - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./letsencrypt:/letsencrypt"
-    networks:
-      - web
-    labels:
-      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
-      - "traefik.http.routers.global.rule=HostRegexp(`{host:.+}`)"
-      - "traefik.http.routers.global.middlewares=redirect-https"
-      - "traefik.http.routers.global.entrypoints=web"
+  ## traefik reverse proxy
+  #traefik:
+  #  image: traefik:v3.6
+  #  command:
+  #    - "--api.insecure=true"
+  #    - "--providers.docker=true"
+  #    - "--providers.docker.exposedbydefault=false"
+  #    - "--entrypoints.web.address=:80"
+  #    - "--entrypoints.websecure.address=:443"
+  #    - "--certificatesresolvers.myresolver.acme.httpchallenge=true"
+  #    - "--certificatesresolvers.myresolver.acme.httpchallenge.entrypoint=web"
+  #    - "--certificatesresolvers.myresolver.acme.email=aaron+letsencrypt@lo-res.org"
+  #    - "--certificatesresolvers.myresolver.acme.storage=/letsencrypt/acme.json"
+  #  ports:
+  #    - "80:80"
+  #    - "443:443"
+  #  volumes:
+  #    - "/var/run/docker.sock:/var/run/docker.sock:ro"
+  #    - "./letsencrypt:/letsencrypt"
+  #  networks:
+  #    - web
+  #  labels:
+  #    - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
+  #    - "traefik.http.routers.global.rule=HostRegexp(`{host:.+}`)"
+  #    - "traefik.http.routers.global.middlewares=redirect-https"
+  #    - "traefik.http.routers.global.entrypoints=web"
         
   # The main microservice, serving the OpenAI summarizer
   #
