@@ -60,7 +60,52 @@ def test_render_summary_markdown_includes_yara_rules():
     rendered = render_summary_markdown(summary)
 
     assert "## YARA Rules" in rendered
-    assert YARA_AUTHOR in rendered
-    assert YARA_AI_VALIDATION_NOTE in rendered
+    assert f'author = "{YARA_AUTHOR}"' in rendered
+    assert f'ai_generated_note = "{YARA_AI_VALIDATION_NOTE}"' in rendered
     assert "```yara" in rendered
     assert "rule test" in rendered
+
+
+def test_render_summary_markdown_injects_yara_meta_section_when_missing():
+    summary = _summary(
+        summary="Rule summary.",
+        yara_rules=[
+            """rule MustangPanda_PlugX
+{
+strings:
+    $a = "plugx"
+condition:
+    $a
+}"""
+        ],
+    )
+
+    rendered = render_summary_markdown(summary)
+
+    assert "meta:" in rendered
+    assert f'author = "{YARA_AUTHOR}"' in rendered
+    assert f'ai_generated_note = "{YARA_AI_VALIDATION_NOTE}"' in rendered
+    assert 'strings:\n    $a = "plugx"' in rendered
+
+
+def test_render_summary_markdown_adds_yara_meta_fields_to_existing_meta_section():
+    summary = _summary(
+        summary="Rule summary.",
+        yara_rules=[
+            """rule MustangPanda_PlugX
+{
+meta:
+    family = "PlugX"
+strings:
+    $a = "plugx"
+condition:
+    $a
+}"""
+        ],
+    )
+
+    rendered = render_summary_markdown(summary)
+
+    assert 'family = "PlugX"' in rendered
+    assert f'author = "{YARA_AUTHOR}"' in rendered
+    assert f'ai_generated_note = "{YARA_AI_VALIDATION_NOTE}"' in rendered

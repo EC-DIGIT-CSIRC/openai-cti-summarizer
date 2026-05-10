@@ -273,8 +273,9 @@ class CTISummarizer:
             "Return only facts supported by the report. Use empty lists when a section is not "
             "supported. Keep yara_rules empty unless the report contains enough concrete "
             "strings, conditions, and context to support useful candidate rules. If you propose "
-            f"any YARA rule, include author metadata naming {YARA_AUTHOR} and include this note "
-            f"in or next to the rule: {YARA_AI_VALIDATION_NOTE}"
+            "any YARA rule, its meta section must include "
+            f'author = "{YARA_AUTHOR}" and '
+            f'ai_generated_note = "{YARA_AI_VALIDATION_NOTE}"'
         )
         return "\n\n".join(part for part in (base_prompt, grounding, guardrails) if part)
 
