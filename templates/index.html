@@ -108,9 +108,9 @@
     .brand-logo {
       width: 70px;
       height: 54px;
-      border: 1px solid rgba(255, 255, 255, .65);
-      background: #034ea2;
-      box-shadow: 0 0 0 1px rgba(255, 255, 255, .22);
+      border: 0;
+      background: #039;
+      box-shadow: none;
     }
 
     .brand-name {
@@ -585,34 +585,32 @@
   <div class="app-shell">
     <header class="topbar">
       <div class="brand">
-        <button class="menu-button" type="button" aria-label="Open navigation"><span></span></button>
-        <svg class="brand-logo" viewBox="0 0 70 54" role="img" aria-label="European Union">
-          <rect width="70" height="54" fill="#034ea2"></rect>
-          <g fill="#ffcc00" transform="translate(35 27)">
-            <circle r="2.4" cx="0" cy="-17"></circle>
-            <circle r="2.4" cx="8.5" cy="-14.7"></circle>
-            <circle r="2.4" cx="14.7" cy="-8.5"></circle>
-            <circle r="2.4" cx="17" cy="0"></circle>
-            <circle r="2.4" cx="14.7" cy="8.5"></circle>
-            <circle r="2.4" cx="8.5" cy="14.7"></circle>
-            <circle r="2.4" cx="0" cy="17"></circle>
-            <circle r="2.4" cx="-8.5" cy="14.7"></circle>
-            <circle r="2.4" cx="-14.7" cy="8.5"></circle>
-            <circle r="2.4" cx="-17" cy="0"></circle>
-            <circle r="2.4" cx="-14.7" cy="-8.5"></circle>
-            <circle r="2.4" cx="-8.5" cy="-14.7"></circle>
+        <!-- <button class="menu-button" type="button" aria-label="Open navigation"><span></span></button> -->
+        <svg class="brand-logo" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="European Union">
+          <rect width="900" height="600" fill="#039"></rect>
+          <g fill="#fc0" transform="translate(450 300)">
+            <path id="eu-star" d="M0,162.5 22.041947,230.338137 -35.664619,188.411863H35.664619L-22.041947,230.338137z"></path>
+            <use href="#eu-star" y="-400"></use>
+            <g id="eu-star-five">
+              <use href="#eu-star" transform="rotate(30) rotate(-30,0,200)"></use>
+              <use href="#eu-star" transform="rotate(60) rotate(-60,0,200)"></use>
+              <use href="#eu-star" transform="rotate(90) rotate(-90,0,200)"></use>
+              <use href="#eu-star" transform="rotate(120) rotate(-120,0,200)"></use>
+              <use href="#eu-star" transform="rotate(150) rotate(-150,0,200)"></use>
+            </g>
+            <use href="#eu-star-five" transform="scale(-1,1)"></use>
           </g>
         </svg>
-        <div class="brand-name">SOCT / DIGIT S.2</div>
+        <div class="brand-name">DIGIT S2 CSOC (SOCET)</div>
       </div>
       <div class="topbar-actions">
         <div class="welcome" aria-label="Logged in user">
-          <small>Welcome</small>
+          <small>Welcome </small>
           <strong>{{ username }}</strong>
         </div>
         <div class="language" aria-label="Language">
-          <span class="language-icon">◎</span>
-          <span>EN</span>
+          <!-- <span class="language-icon">◎</span>
+          <span>EN</span> -->
         </div>
       </div>
     </header>
