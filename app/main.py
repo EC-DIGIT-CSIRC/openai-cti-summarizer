@@ -16,11 +16,12 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .auth import get_current_username
-from .config import AppSettings, LLMSettings
+from .config import AppSettings, LangSmithSettings, LLMSettings
 from .rendering import render_summary_markdown, summary_to_jsonable
 from .schema import CTISummary
 from .settings import log
 from .summarizer import CTISummarizer, SummarizationError
+from .tracing import TraceContext, parse_sensitivity
 
 try:
     with open(Path(__file__).resolve().parent.parent / 'VERSION.txt', encoding='utf-8') as _f:
@@ -33,6 +34,7 @@ except Exception:
 BASE_DIR = Path(__file__).resolve().parent.parent
 app_settings = AppSettings()
 llm_settings = LLMSettings()
+langsmith_settings = LangSmithSettings()
 app = FastAPI(version=VERSION)
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
@@ -173,6 +175,27 @@ async def index(request: Request,           # request object
             status_code=400,
         )
 
+    try:
+        validated_sensitivity = parse_sensitivity(sensitivity)
+    except ValueError as ex:
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            template_context(
+                request,
+                username,
+                text=text,
+                url=url,
+                system_prompt=system_prompt,
+                result=str(ex),
+                success=False,
+                model=model,
+                sensitivity=sensitivity,
+                input_mode=input_mode,
+            ),
+            status_code=400,
+        )
+
     request_llm_settings = llm_settings.with_overrides(model=model)
     prompt = system_prompt or app_settings.system_prompt
 
@@ -246,7 +269,17 @@ async def index(request: Request,           # request object
         )
     else:
         try:
-            summary = (await CTISummarizer(request_llm_settings).summarize(text, prompt)).summary
+            summary = (
+                await CTISummarizer(
+                    request_llm_settings,
+                    langsmith_settings=langsmith_settings,
+                    trace_context=TraceContext(
+                        sensitivity=validated_sensitivity,
+                        input_mode=input_mode or ("url" if url else "text"),
+                        app_version=VERSION,
+                    ),
+                ).summarize(text, prompt)
+            ).summary
         except SummarizationError as ex:
             return templates.TemplateResponse(
                 request,
@@ -260,7 +293,7 @@ async def index(request: Request,           # request object
                     "success": False,
                     "username": username,
                     "model": request_llm_settings.model,
-                    "sensitivity": sensitivity or "PA",
+                    "sensitivity": validated_sensitivity.value,
                     "input_mode": input_mode or ("url" if url else "text"),
                     "version": VERSION,
                     "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",

@@ -10,9 +10,10 @@ import click
 import requests
 from bs4 import BeautifulSoup
 
-from .config import AppSettings, LLMOutputMode, LLMProvider, LLMSettings
+from .config import AppSettings, LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings, Sensitivity
 from .rendering import render_summary_markdown, summary_to_jsonable
 from .summarizer import CTISummarizer, SummarizationError
+from .tracing import TraceContext
 
 
 def _read_input(text: str | None, file_path: str | None, url: str | None) -> str:
@@ -42,6 +43,8 @@ def _read_input(text: str | None, file_path: str | None, url: str | None) -> str
 @click.option("--output-mode", type=click.Choice([item.value for item in LLMOutputMode]), help="Structured output mode.")
 @click.option("--allow-output-fallback/--no-output-fallback", default=None, help="Retry with fallback output mode on provider failure.")
 @click.option("--prompt-grounding-hint-limit", type=int, help="Number of cache hints to add to the prompt.")
+@click.option("--sensitivity", type=click.Choice([item.value for item in Sensitivity]), default="PA", show_default=True)
+@click.option("--langsmith-tracing/--no-langsmith-tracing", default=None, help="Override LANGSMITH_TRACING.")
 @click.option("--return-json", is_flag=True, help="Print validated JSON instead of markdown.")
 @click.option("--system-prompt", help="Override the default system prompt.")
 @click.option("--text", help="Report text to summarize.")
@@ -60,6 +63,8 @@ def main(
     output_mode: str | None,
     allow_output_fallback: bool | None,
     prompt_grounding_hint_limit: int | None,
+    sensitivity: str,
+    langsmith_tracing: bool | None,
     return_json: bool,
     system_prompt: str | None,
     text: str | None,
@@ -81,12 +86,23 @@ def main(
         allow_output_fallback=allow_output_fallback,
         prompt_grounding_hint_limit=prompt_grounding_hint_limit,
     )
+    langsmith_settings = LangSmithSettings().with_overrides(tracing=langsmith_tracing)
     app_settings = AppSettings()
     report_text = _read_input(text, file_path, url)
     prompt = system_prompt or app_settings.system_prompt
+    input_mode = "text" if text is not None else "file" if file_path is not None else "url"
 
     try:
-        result = asyncio.run(CTISummarizer(llm_settings).summarize(report_text, prompt))
+        result = asyncio.run(
+            CTISummarizer(
+                llm_settings,
+                langsmith_settings=langsmith_settings,
+                trace_context=TraceContext(
+                    sensitivity=Sensitivity(sensitivity),
+                    input_mode=input_mode,
+                ),
+            ).summarize(report_text, prompt)
+        )
     except SummarizationError as exc:
         raise click.ClickException(str(exc)) from exc
 
