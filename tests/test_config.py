@@ -33,3 +33,8 @@ def test_native_output_is_default(monkeypatch):
 def test_model_must_not_be_empty():
     with pytest.raises(ValidationError, match="LLM model must not be empty"):
         LLMSettings(model="  ")
+
+
+def test_max_retries_must_not_be_negative():
+    with pytest.raises(ValidationError, match="LLM max retries must not be negative"):
+        LLMSettings(max_retries=-1)

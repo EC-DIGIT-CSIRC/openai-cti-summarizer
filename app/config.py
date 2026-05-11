@@ -57,6 +57,13 @@ class LLMSettings(BaseSettings):
             raise ValueError("LLM model must not be empty.")
         return cleaned
 
+    @field_validator("max_retries")
+    @classmethod
+    def _max_retries_must_not_be_negative(cls, value: int) -> int:
+        if value < 0:
+            raise ValueError("LLM max retries must not be negative.")
+        return value
+
     @model_validator(mode="after")
     def _validate_provider_specific_settings(self) -> "LLMSettings":
         if self.provider == LLMProvider.AZURE:

@@ -39,6 +39,19 @@ class FakeAgent:
         return FakeRunResult(self.output)
 
 
+class FailsThenSucceedsAgent:
+    def __init__(self, output, failures):
+        self.output = output
+        self.failures = failures
+        self.calls = []
+
+    async def run(self, text, model_settings=None):
+        self.calls.append((text, model_settings))
+        if len(self.calls) <= self.failures:
+            raise RuntimeError("temporary provider error")
+        return FakeRunResult(self.output)
+
+
 def _summary(**overrides):
     data = {
         "summary": "Test summary.",
@@ -152,6 +165,40 @@ def test_summarizer_provider_error_without_fallback(monkeypatch):
                 model_factory=lambda settings: "test:model",
             ).summarize("report text", "system prompt")
         )
+
+
+def test_summarizer_retries_provider_errors_up_to_max_retries(monkeypatch, caplog):
+    caplog.set_level("WARNING")
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+    fake_agent = FailsThenSucceedsAgent(_summary(summary="Retry worked."), failures=2)
+
+    result = asyncio.run(
+        CTISummarizer(
+            LLMSettings(model="test-model", max_retries=2),
+            agent_factory=lambda model, output_type, kwargs: fake_agent,
+            model_factory=lambda settings: "test:model",
+        ).summarize("report text", "system prompt")
+    )
+
+    assert result.summary.summary == "Retry worked."
+    assert len(fake_agent.calls) == 3
+    assert "cti_summary_retrying_after_provider_error" in caplog.text
+
+
+def test_summarizer_raises_after_max_retries(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+    fake_agent = FailsThenSucceedsAgent(_summary(summary="unused"), failures=2)
+
+    with pytest.raises(LLMProviderError, match="temporary provider error"):
+        asyncio.run(
+            CTISummarizer(
+                LLMSettings(model="test-model", max_retries=1),
+                agent_factory=lambda model, output_type, kwargs: fake_agent,
+                model_factory=lambda settings: "test:model",
+            ).summarize("report text", "system prompt")
+        )
+
+    assert len(fake_agent.calls) == 2
 
 
 def test_secret_value_handles_none_secret_and_plain_string():

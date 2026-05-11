@@ -261,12 +261,7 @@ class CTISummarizer:
             model_settings["openai_text_verbosity"] = "low"
 
         started = time.perf_counter()
-        try:
-            result = await agent.run(text, model_settings=model_settings)
-        except ValidationError as exc:
-            raise LLMOutputValidationError(f"LLM output failed schema validation: {exc}") from exc
-        except Exception as exc:
-            raise LLMProviderError(f"LLM request failed: {exc}") from exc
+        result = await self._run_agent_with_retries(agent, text, model_settings)
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         summary = result.output
@@ -288,6 +283,32 @@ class CTISummarizer:
             model=self.settings.model,
             output_mode=output_mode.value,
         )
+
+    async def _run_agent_with_retries(
+        self,
+        agent: Any,
+        text: str,
+        model_settings: dict[str, Any],
+    ) -> Any:
+        for attempt in range(self.settings.max_retries + 1):
+            try:
+                return await agent.run(text, model_settings=model_settings)
+            except ValidationError as exc:
+                raise LLMOutputValidationError(f"LLM output failed schema validation: {exc}") from exc
+            except Exception as exc:
+                if attempt >= self.settings.max_retries:
+                    raise LLMProviderError(f"LLM request failed: {exc}") from exc
+                log.warning(
+                    "cti_summary_retrying_after_provider_error",
+                    extra={
+                        "provider": self.settings.provider.value,
+                        "model": self.settings.model,
+                        "attempt": attempt + 1,
+                        "max_retries": self.settings.max_retries,
+                    },
+                )
+
+        raise LLMProviderError("LLM request failed after retries.")
 
     def _build_instructions(self, system_prompt: str | None) -> str:
         base_prompt = system_prompt.strip() if system_prompt else ""
