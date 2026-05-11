@@ -45,6 +45,16 @@ class SummarizationResult:
 AgentFactory = Callable[[Any, Any, dict[str, Any]], Any]
 
 
+def _is_gpt_5_5_model(model: str) -> bool:
+    normalized = model.rsplit("/", maxsplit=1)[-1].lower()
+    return normalized == "gpt-5.5" or normalized.startswith("gpt-5.5-")
+
+
+def _uses_openai_responses_verbosity(settings: LLMSettings) -> bool:
+    openai_responses_provider = settings.provider in {LLMProvider.OPENAI, LLMProvider.AZURE}
+    return openai_responses_provider and _is_gpt_5_5_model(settings.model)
+
+
 def _secret_value(value: Any | None) -> str | None:
     if value is None:
         return None
@@ -57,6 +67,15 @@ def _build_pydantic_ai_model(settings: LLMSettings) -> Any:
     """Build a Pydantic AI model or model string from settings."""
     try:
         if settings.provider == LLMProvider.OPENAI:
+            if _is_gpt_5_5_model(settings.model):
+                from pydantic_ai.models.openai import OpenAIResponsesModel
+                from pydantic_ai.providers.openai import OpenAIProvider
+
+                provider = OpenAIProvider(
+                    api_key=_secret_value(settings.api_key),
+                    base_url=settings.base_url,
+                )
+                return OpenAIResponsesModel(settings.model, provider=provider)
             if settings.api_key or settings.base_url:
                 from pydantic_ai.models.openai import OpenAIChatModel
                 from pydantic_ai.providers.openai import OpenAIProvider
@@ -69,7 +88,7 @@ def _build_pydantic_ai_model(settings: LLMSettings) -> Any:
             return f"openai:{settings.model}"
 
         if settings.provider == LLMProvider.AZURE:
-            from pydantic_ai.models.openai import OpenAIChatModel
+            from pydantic_ai.models.openai import OpenAIChatModel, OpenAIResponsesModel
             from pydantic_ai.providers.azure import AzureProvider
 
             provider = AzureProvider(
@@ -77,6 +96,8 @@ def _build_pydantic_ai_model(settings: LLMSettings) -> Any:
                 api_key=_secret_value(settings.azure_api_key),
                 api_version=settings.azure_api_version,
             )
+            if _is_gpt_5_5_model(settings.model):
+                return OpenAIResponsesModel(settings.model, provider=provider)
             return OpenAIChatModel(settings.model, provider=provider)
 
         if settings.provider == LLMProvider.OPENROUTER:
@@ -236,6 +257,8 @@ class CTISummarizer:
         model_settings = {
             "timeout": self.settings.timeout_seconds,
         }
+        if _uses_openai_responses_verbosity(self.settings):
+            model_settings["openai_text_verbosity"] = "low"
 
         started = time.perf_counter()
         try:

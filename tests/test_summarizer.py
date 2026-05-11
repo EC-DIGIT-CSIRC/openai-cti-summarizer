@@ -79,6 +79,36 @@ def test_summarizer_returns_validated_summary_and_logs_usage(monkeypatch, caplog
     assert "cti_summary_completed" in caplog.text
 
 
+def test_summarizer_sets_low_verbosity_for_gpt_5_5(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+    fake_agent = FakeAgent(_summary())
+
+    asyncio.run(
+        CTISummarizer(
+            LLMSettings(model="gpt-5.5"),
+            agent_factory=lambda model, output_type, kwargs: fake_agent,
+            model_factory=lambda settings: "test:model",
+        ).summarize("report text", "system prompt")
+    )
+
+    assert fake_agent.calls[0][1]["openai_text_verbosity"] == "low"
+
+
+def test_summarizer_does_not_set_low_verbosity_for_other_models(monkeypatch):
+    monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
+    fake_agent = FakeAgent(_summary())
+
+    asyncio.run(
+        CTISummarizer(
+            LLMSettings(model="gpt-5.4-mini"),
+            agent_factory=lambda model, output_type, kwargs: fake_agent,
+            model_factory=lambda settings: "test:model",
+        ).summarize("report text", "system prompt")
+    )
+
+    assert "openai_text_verbosity" not in fake_agent.calls[0][1]
+
+
 def test_summarizer_retries_with_fallback_when_enabled(monkeypatch):
     monkeypatch.setattr(summarizer, "_structured_output_type", lambda mode: CTISummary)
     calls = []
@@ -172,6 +202,12 @@ def test_build_pydantic_ai_model_constructs_explicit_provider_models(settings_kw
     model = summarizer._build_pydantic_ai_model(LLMSettings(**settings_kwargs))
 
     assert type(model).__name__ == class_name
+
+
+def test_build_pydantic_ai_model_uses_responses_model_for_gpt_5_5():
+    model = summarizer._build_pydantic_ai_model(LLMSettings(provider="openai", model="gpt-5.5"))
+
+    assert type(model).__name__ == "OpenAIResponsesModel"
 
 
 def test_build_pydantic_ai_model_wraps_provider_configuration_errors():

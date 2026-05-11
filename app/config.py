@@ -85,11 +85,12 @@ class AppSettings(BaseSettings):
 
     system_prompt: str = Field(
         default=(
-            "You are a Cyber Threat Intelligence Analyst. Extract a concise, factual, "
-            "structured summary of the report. Prefer canonical MITRE ATT&CK and "
-            "Malpedia values when they match the report. Leave yara_rules empty unless "
-            "the report contains enough concrete strings, conditions, and context to "
-            "support useful candidate rules."
+            "You are a Cyber Threat Intelligence analyst. Extract a concise, schema-valid "
+            "CTISummary from the report. Use only facts explicitly supported by the report. "
+            "Do not infer missing details. Prefer canonical MITRE ATT&CK and Malpedia values "
+            "when they match the report. Keep unsupported optional fields empty. Generate "
+            "YARA rules only when the report contains enough concrete strings, conditions, "
+            "and context."
         ),
         alias="SYSTEM_PROMPT",
     )
