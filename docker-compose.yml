@@ -50,9 +50,12 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.openai-summarizer.rule=Host(`${TRAEFIK_HOST}`)"
-      - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
-      - "traefik.http.routers.openai-summarizer.tls.certresolver=myresolver"
+      # Set TRAEFIK_TLS_CERT_RESOLVER=le for Let's Encrypt, or leave it empty
+      # to use a certificate configured directly on Traefik, such as a local CA cert.
+      - "traefik.http.routers.openai-summarizer.tls.certresolver=${TRAEFIK_TLS_CERT_RESOLVER-le}"
+      - "traefik.http.routers.openai-summarizer.tls=true"
       - "traefik.http.services.openai-summarizer.loadbalancer.server.port=9999"
+      - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
     networks:
       - web
 
