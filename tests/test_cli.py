@@ -4,6 +4,7 @@ import pytest
 from click.testing import CliRunner
 
 from app import cli
+from app.config import LLMOutputMode, LLMProvider
 from app.schema import CTISummary
 from app.summarizer import SummarizationError
 
@@ -21,8 +22,11 @@ class FakeResult:
 
 
 class FakeSummarizer:
+    last_settings = None
+
     def __init__(self, settings):
         self.settings = settings
+        type(self).last_settings = settings
 
     async def summarize(self, text, system_prompt=None):
         return FakeResult(
@@ -82,6 +86,63 @@ def test_cli_outputs_json(monkeypatch):
 
     assert result.exit_code == 0
     assert json.loads(result.output)["summary"] == "CLI APT28 repo"
+
+
+def test_cli_passes_environment_to_llm_settings(monkeypatch):
+    monkeypatch.setattr(cli, "CTISummarizer", FakeSummarizer)
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("LLM_MODEL", "env-model")
+    monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "12")
+    monkeypatch.setenv("LLM_MAX_RETRIES", "3")
+    runner = CliRunner()
+
+    result = runner.invoke(cli.main, ["--text", "APT28 report"])
+
+    assert result.exit_code == 0
+    assert FakeSummarizer.last_settings.provider == LLMProvider.OPENAI
+    assert FakeSummarizer.last_settings.model == "env-model"
+    assert FakeSummarizer.last_settings.timeout_seconds == 12
+    assert FakeSummarizer.last_settings.max_retries == 3
+
+
+def test_cli_parameters_override_llm_settings(monkeypatch):
+    monkeypatch.setattr(cli, "CTISummarizer", FakeSummarizer)
+    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("LLM_MODEL", "env-model")
+    runner = CliRunner()
+
+    result = runner.invoke(
+        cli.main,
+        [
+            "--text",
+            "APT28 report",
+            "--provider",
+            "openrouter",
+            "--model",
+            "cli-model",
+            "--base-url",
+            "https://llm.example.test/v1",
+            "--timeout-seconds",
+            "9",
+            "--max-retries",
+            "5",
+            "--output-mode",
+            "tool",
+            "--allow-output-fallback",
+            "--prompt-grounding-hint-limit",
+            "11",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert FakeSummarizer.last_settings.provider == LLMProvider.OPENROUTER
+    assert FakeSummarizer.last_settings.model == "cli-model"
+    assert FakeSummarizer.last_settings.base_url == "https://llm.example.test/v1"
+    assert FakeSummarizer.last_settings.timeout_seconds == 9
+    assert FakeSummarizer.last_settings.max_retries == 5
+    assert FakeSummarizer.last_settings.output_mode == LLMOutputMode.TOOL
+    assert FakeSummarizer.last_settings.allow_output_fallback is True
+    assert FakeSummarizer.last_settings.prompt_grounding_hint_limit == 11
 
 
 def test_cli_maps_summarization_error(monkeypatch):

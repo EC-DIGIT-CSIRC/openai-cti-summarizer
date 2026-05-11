@@ -1,11 +1,45 @@
 import pytest
 from pydantic import ValidationError
 
-from app.config import LLMOutputMode, LLMProvider, LLMSettings
+from app.config import AppSettings, LLMOutputMode, LLMProvider, LLMSettings
 
 
 def test_default_llm_model_is_gpt_5_5():
     assert LLMSettings.model_fields["model"].default == "gpt-5.5"
+
+
+def test_llm_settings_read_prefixed_environment(monkeypatch):
+    monkeypatch.setenv("LLM_PROVIDER", "openrouter")
+    monkeypatch.setenv("LLM_MODEL", "anthropic/claude-sonnet-4-5")
+    monkeypatch.setenv("LLM_BASE_URL", "https://llm.example.test/v1")
+    monkeypatch.setenv("LLM_TIMEOUT_SECONDS", "42")
+    monkeypatch.setenv("LLM_MAX_RETRIES", "4")
+    monkeypatch.setenv("LLM_OUTPUT_MODE", "tool")
+    monkeypatch.setenv("LLM_ALLOW_OUTPUT_FALLBACK", "true")
+    monkeypatch.setenv("LLM_PROMPT_GROUNDING_HINT_LIMIT", "17")
+
+    settings = LLMSettings()
+
+    assert settings.provider == LLMProvider.OPENROUTER
+    assert settings.model == "anthropic/claude-sonnet-4-5"
+    assert settings.base_url == "https://llm.example.test/v1"
+    assert settings.timeout_seconds == 42
+    assert settings.max_retries == 4
+    assert settings.output_mode == LLMOutputMode.TOOL
+    assert settings.allow_output_fallback is True
+    assert settings.prompt_grounding_hint_limit == 17
+
+
+def test_app_settings_read_environment(monkeypatch):
+    monkeypatch.setenv("SYSTEM_PROMPT", "Prompt from env")
+    monkeypatch.setenv("OUTPUT_JSON", "true")
+    monkeypatch.setenv("DRY_RUN", "true")
+
+    settings = AppSettings()
+
+    assert settings.system_prompt == "Prompt from env"
+    assert settings.output_json is True
+    assert settings.dry_run is True
 
 
 def test_llm_settings_support_cli_style_overrides(monkeypatch):
