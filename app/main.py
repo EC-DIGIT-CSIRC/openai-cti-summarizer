@@ -40,6 +40,36 @@ app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="stat
 log.info("llm_settings_loaded", extra={"provider": llm_settings.provider.value, "model": llm_settings.model})
 
 
+def template_context(
+    request: Request,
+    username: str,
+    *,
+    text: str | None = None,
+    url: str | None = None,
+    system_prompt: str | None = None,
+    result: str | None = None,
+    success: bool | None = None,
+    model: str | None = None,
+    sensitivity: str | None = None,
+    input_mode: str | None = None,
+) -> dict:
+    """Build common template context for the web UI."""
+    return {
+        "request": request,
+        "text": text,
+        "url": url,
+        "system_prompt": system_prompt or app_settings.system_prompt,
+        "result": result,
+        "success": success,
+        "username": username,
+        "model": model or llm_settings.model,
+        "sensitivity": sensitivity or "PA",
+        "input_mode": input_mode or ("url" if url else "text"),
+        "version": VERSION,
+        "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
+    }
+
+
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
     """HTTP to HTTPS redirection"""
     async def dispatch(self, request: Request, call_next):
@@ -72,12 +102,7 @@ def get_index(request: Request, username: str = Depends(get_current_username)):
     return templates.TemplateResponse(
         request,
         "index.html",
-        {
-            "request": request,
-            "system_prompt": app_settings.system_prompt,
-            "username": username,
-            "model": llm_settings.model,
-        },
+        template_context(request, username),
     )
 
 
@@ -117,6 +142,7 @@ async def index(request: Request,           # request object
                 url: str = Form(None),      # alternatively the URL
                 pdffile: UploadFile = File(None),
                 system_prompt: str = Form(None), model: str = Form(None),
+                sensitivity: str = Form(None), input_mode: str = Form(None),
                 username: str = Depends(get_current_username)):
     """HTTP POST method for the default page. This gets called when the user already HTTP POSTs a text which should be summarized."""
 
@@ -129,8 +155,23 @@ async def index(request: Request,           # request object
     else:
         log.error("no pdffile, no text, no url. Bailing out.")
         error = "Expected either url field or text field or a PDF file. Please specify one at least."
-        result = None
-        return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username, "model": model or llm_settings.model}, status_code=400)
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            template_context(
+                request,
+                username,
+                text=text,
+                url=url,
+                system_prompt=system_prompt,
+                result=error,
+                success=False,
+                model=model,
+                sensitivity=sensitivity,
+                input_mode=input_mode,
+            ),
+            status_code=400,
+        )
 
     request_llm_settings = llm_settings.with_overrides(model=model)
     prompt = system_prompt or app_settings.system_prompt
@@ -139,7 +180,23 @@ async def index(request: Request,           # request object
         try:
             text = await fetch_text_from_url(url)
         except Exception as ex:
-            return templates.TemplateResponse(request, "index.html", {"request": request, "text": url, "system_prompt": prompt, "result": f"Could not fetch URL. Reason {str(ex)}", "success": False, "username": username, "model": request_llm_settings.model}, status_code=400)
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                template_context(
+                    request,
+                    username,
+                    text=text,
+                    url=url,
+                    system_prompt=prompt,
+                    result=f"Could not fetch URL. Reason {str(ex)}",
+                    success=False,
+                    model=request_llm_settings.model,
+                    sensitivity=sensitivity,
+                    input_mode=input_mode or "url",
+                ),
+                status_code=400,
+            )
 
     elif pdffile:
         log.warning("we got a pdffile")
@@ -157,7 +214,23 @@ async def index(request: Request,           # request object
             # Cleanup the temporary file
             Path(tmp_pdf_path).unlink()
         except Exception as ex:
-            return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": prompt, "result": f"Could not process the PDF file. Reason {str(ex)}", "success": False, "username": username, "model": request_llm_settings.model}, status_code=400)
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                template_context(
+                    request,
+                    username,
+                    text=text,
+                    url=url,
+                    system_prompt=prompt,
+                    result=f"Could not process the PDF file. Reason {str(ex)}",
+                    success=False,
+                    model=request_llm_settings.model,
+                    sensitivity=sensitivity,
+                    input_mode=input_mode or "file",
+                ),
+                status_code=400,
+            )
 
     # we got the text from the URL or the pdffile was converted... now check if we should actually summarize
     if app_settings.dry_run:
@@ -165,8 +238,11 @@ async def index(request: Request,           # request object
             summary="This is a sample response because DRY_RUN is enabled.",
             key_points=["No request was sent to an LLM provider."],
             ttps=[],
+            indicators=[],
+            threat_actors=[],
             confidence_score=1.0,
             report_metadata={"mode": "dry_run"},
+            yara_rules=[],
         )
     else:
         try:
@@ -178,11 +254,16 @@ async def index(request: Request,           # request object
                 {
                     "request": request,
                     "text": text,
+                    "url": url,
                     "system_prompt": prompt,
                     "result": str(ex),
                     "success": False,
                     "username": username,
                     "model": request_llm_settings.model,
+                    "sensitivity": sensitivity or "PA",
+                    "input_mode": input_mode or ("url" if url else "text"),
+                    "version": VERSION,
+                    "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
                 },
                 status_code=400,
             )
@@ -191,14 +272,22 @@ async def index(request: Request,           # request object
         return JSONResponse(summary_to_jsonable(summary))
 
     result = markdown.markdown(render_summary_markdown(summary), extensions=["tables", "fenced_code"])
-    return templates.TemplateResponse(request, "index.html", {
-        "request": request,
-        "text": text,
-        "system_prompt": prompt,
-        "result": result,
-        "success": True,
-        "model": request_llm_settings.model,
-        "username": username})
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        template_context(
+            request,
+            username,
+            text=text,
+            url=url,
+            system_prompt=prompt,
+            result=result,
+            success=True,
+            model=request_llm_settings.model,
+            sensitivity=sensitivity,
+            input_mode=input_mode,
+        ),
+    )
 
 
 if __name__ == "__main__":

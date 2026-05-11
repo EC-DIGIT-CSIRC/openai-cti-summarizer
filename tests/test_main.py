@@ -68,7 +68,7 @@ def test_get_index_renders_form(monkeypatch):
     response = client.get("/", headers={"X-Forwarded-Proto": "https"})
 
     assert response.status_code == 200
-    assert "Summarize this" in response.text
+    assert "CTI Extractor" in response.text
     assert "Default CTI prompt" in response.text
 
 
