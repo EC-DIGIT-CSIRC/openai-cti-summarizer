@@ -4,6 +4,10 @@ from pydantic import ValidationError
 from app.config import LLMOutputMode, LLMProvider, LLMSettings
 
 
+def test_default_llm_model_is_gpt_5_5():
+    assert LLMSettings.model_fields["model"].default == "gpt-5.5"
+
+
 def test_llm_settings_support_cli_style_overrides(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "openai")
     monkeypatch.setenv("LLM_MODEL", "gpt-5.4-mini")

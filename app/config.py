@@ -36,7 +36,7 @@ class LLMSettings(BaseSettings):
     model_config = SettingsConfigDict(env_prefix="LLM_", extra="ignore")
 
     provider: LLMProvider = LLMProvider.OPENAI
-    model: str = "gpt-5.4-mini"
+    model: str = "gpt-5.5"
     api_key: SecretStr | None = None
     base_url: str | None = None
     azure_endpoint: str | None = None
