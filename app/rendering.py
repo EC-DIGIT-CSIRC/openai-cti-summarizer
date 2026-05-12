@@ -66,9 +66,9 @@ def render_summary_markdown(summary: CTISummary) -> str:
     _append_list(lines, "TTPs", summary.ttps)
 
     if summary.indicators_of_compromise:
-        lines.extend(["## Indicators of Compromise", "", "|: Type |: Value |", "|---|---|"])
+        lines.extend(["## Indicators of Compromise", "", "| Type | Value |", "|:---|:---|"])
         for indicator in summary.indicators_of_compromise:
-            lines.append(f"|: {indicator.type} |: {indicator.value} |")
+            lines.append(f"| {indicator.type} | {indicator.value} |")
         lines.append("")
 
     _append_list(lines, "Threat Actors", summary.threat_actors or [])
