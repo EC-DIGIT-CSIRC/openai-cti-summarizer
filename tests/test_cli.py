@@ -23,10 +23,16 @@ class FakeResult:
 
 class FakeSummarizer:
     last_settings = None
+    last_langsmith_settings = None
+    last_trace_context = None
 
-    def __init__(self, settings):
+    def __init__(self, settings, *, langsmith_settings=None, trace_context=None):
         self.settings = settings
+        self.langsmith_settings = langsmith_settings
+        self.trace_context = trace_context
         type(self).last_settings = settings
+        type(self).last_langsmith_settings = langsmith_settings
+        type(self).last_trace_context = trace_context
 
     async def summarize(self, text, system_prompt=None):
         return FakeResult(
@@ -41,7 +47,7 @@ class FakeSummarizer:
 
 
 class FailingSummarizer:
-    def __init__(self, settings):
+    def __init__(self, settings, **kwargs):
         self.settings = settings
 
     async def summarize(self, text, system_prompt=None):
@@ -143,6 +149,32 @@ def test_cli_parameters_override_llm_settings(monkeypatch):
     assert FakeSummarizer.last_settings.output_mode == LLMOutputMode.TOOL
     assert FakeSummarizer.last_settings.allow_output_fallback is True
     assert FakeSummarizer.last_settings.prompt_grounding_hint_limit == 11
+
+
+def test_cli_parameters_override_langsmith_tracing(monkeypatch):
+    monkeypatch.setattr(cli, "CTISummarizer", FakeSummarizer)
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+    monkeypatch.setenv("LANGSMITH_TRACING", "false")
+    runner = CliRunner()
+
+    result = runner.invoke(
+        cli.main,
+        ["--text", "APT28 report", "--langsmith-tracing", "--sensitivity", "PA"],
+    )
+
+    assert result.exit_code == 0
+    assert FakeSummarizer.last_langsmith_settings.tracing is True
+    assert FakeSummarizer.last_trace_context.sensitivity.value == "PA"
+    assert FakeSummarizer.last_trace_context.input_mode == "text"
+
+
+def test_cli_rejects_invalid_sensitivity():
+    runner = CliRunner()
+
+    result = runner.invoke(cli.main, ["--text", "APT28 report", "--sensitivity", "SECRET"])
+
+    assert result.exit_code != 0
+    assert "Invalid value for '--sensitivity'" in result.output
 
 
 def test_cli_maps_summarization_error(monkeypatch):

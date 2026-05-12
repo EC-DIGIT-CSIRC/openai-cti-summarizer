@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.config import AppSettings, LLMOutputMode, LLMProvider, LLMSettings
+from app.config import AppSettings, LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings
 
 
 def test_default_llm_model_is_gpt_5_5():
@@ -40,6 +40,28 @@ def test_app_settings_read_environment(monkeypatch):
     assert settings.system_prompt == "Prompt from env"
     assert settings.output_json is True
     assert settings.dry_run is True
+
+
+def test_langsmith_settings_read_environment(monkeypatch):
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    monkeypatch.setenv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
+    monkeypatch.setenv("LANGSMITH_API_KEY", "test-key")
+    monkeypatch.setenv("LANGSMITH_PROJECT", "cti-test")
+
+    settings = LangSmithSettings()
+
+    assert settings.tracing is True
+    assert settings.endpoint == "https://api.smith.langchain.com"
+    assert settings.api_key is not None
+    assert settings.project == "cti-test"
+
+
+def test_langsmith_tracing_requires_api_key(monkeypatch):
+    monkeypatch.setenv("LANGSMITH_TRACING", "true")
+    monkeypatch.delenv("LANGSMITH_API_KEY", raising=False)
+
+    with pytest.raises(ValidationError, match="LANGSMITH_API_KEY"):
+        LangSmithSettings()
 
 
 def test_llm_settings_support_cli_style_overrides(monkeypatch):

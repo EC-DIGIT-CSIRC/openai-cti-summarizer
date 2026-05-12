@@ -9,6 +9,7 @@ dependencies = [
     "click",
     "fastapi",
     "jinja2",
+    "langsmith>=0.8.3",
     "markdown",
     "markupsafe",
     "pydantic",

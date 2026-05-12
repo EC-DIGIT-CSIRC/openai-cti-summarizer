@@ -30,6 +30,14 @@ class LLMOutputMode(str, Enum):
     PROMPTED = "prompted"
 
 
+class Sensitivity(str, Enum):
+    """Supported report sensitivity levels."""
+
+    PA = "PA"
+    CU = "CU"
+    SNC = "SNC"
+
+
 class LLMSettings(BaseSettings):
     """Settings for constructing a Pydantic AI model and summarizer."""
 
@@ -81,6 +89,28 @@ class LLMSettings(BaseSettings):
 
     def with_overrides(self, **overrides: Any) -> "LLMSettings":
         """Return a copy with CLI or request-level overrides applied."""
+        cleaned = {key: value for key, value in overrides.items() if value is not None}
+        return type(self)(**{**self.model_dump(), **cleaned})
+
+
+class LangSmithSettings(BaseSettings):
+    """LangSmith tracing settings."""
+
+    model_config = SettingsConfigDict(env_prefix="LANGSMITH_", extra="ignore")
+
+    tracing: bool = False
+    endpoint: str | None = None
+    api_key: SecretStr | None = None
+    project: str = "openai-cti-summarizer"
+
+    @model_validator(mode="after")
+    def _validate_tracing_credentials(self) -> "LangSmithSettings":
+        if self.tracing and not self.api_key:
+            raise ValueError("LANGSMITH_API_KEY is required when LANGSMITH_TRACING is enabled.")
+        return self
+
+    def with_overrides(self, **overrides: Any) -> "LangSmithSettings":
+        """Return a copy with CLI overrides applied."""
         cleaned = {key: value for key, value in overrides.items() if value is not None}
         return type(self)(**{**self.model_dump(), **cleaned})
 

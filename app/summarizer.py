@@ -8,10 +8,11 @@ from typing import Any, Callable
 
 from pydantic import ValidationError
 
-from .config import LLMOutputMode, LLMProvider, LLMSettings
+from .config import LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings
 from .rendering import YARA_AI_VALIDATION_NOTE, YARA_AUTHOR
 from .schema import CTISummary
 from .settings import log
+from .tracing import TraceContext, run_with_langsmith_trace
 
 
 class SummarizationError(Exception):
@@ -209,10 +210,14 @@ class CTISummarizer:
         *,
         agent_factory: AgentFactory | None = None,
         model_factory: Callable[[LLMSettings], Any] = _build_pydantic_ai_model,
+        langsmith_settings: LangSmithSettings | None = None,
+        trace_context: TraceContext | None = None,
     ) -> None:
         self.settings = settings
         self._agent_factory = agent_factory or _default_agent_factory
         self._model_factory = model_factory
+        self.langsmith_settings = langsmith_settings or LangSmithSettings(tracing=False)
+        self.trace_context = trace_context or TraceContext()
 
     async def summarize(self, text: str, system_prompt: str | None = None) -> SummarizationResult:
         """Summarize report text into a validated CTISummary."""
@@ -261,7 +266,15 @@ class CTISummarizer:
             model_settings["openai_text_verbosity"] = "low"
 
         started = time.perf_counter()
-        result = await self._run_agent_with_retries(agent, text, model_settings)
+        result = await run_with_langsmith_trace(
+            self.langsmith_settings,
+            self.trace_context,
+            report_text=text,
+            provider=self.settings.provider.value,
+            model=self.settings.model,
+            output_mode=output_mode.value,
+            operation=lambda: self._run_agent_with_retries(agent, text, model_settings),
+        )
 
         duration_ms = int((time.perf_counter() - started) * 1000)
         summary = result.output

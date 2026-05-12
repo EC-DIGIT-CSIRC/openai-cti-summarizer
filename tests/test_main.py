@@ -19,8 +19,17 @@ class FakeSummaryResult:
 
 
 class FakeSummarizer:
-    def __init__(self, settings):
+    last_settings = None
+    last_langsmith_settings = None
+    last_trace_context = None
+
+    def __init__(self, settings, *, langsmith_settings=None, trace_context=None):
         self.settings = settings
+        self.langsmith_settings = langsmith_settings
+        self.trace_context = trace_context
+        type(self).last_settings = settings
+        type(self).last_langsmith_settings = langsmith_settings
+        type(self).last_trace_context = trace_context
 
     async def summarize(self, text, system_prompt=None):
         return FakeSummaryResult(
@@ -36,7 +45,7 @@ class FakeSummarizer:
 
 
 class FailingSummarizer:
-    def __init__(self, settings):
+    def __init__(self, settings, **kwargs):
         self.settings = settings
 
     async def summarize(self, text, system_prompt=None):
@@ -55,6 +64,7 @@ def _client(monkeypatch, *, dry_run=False, output_json=False):
         ),
     )
     monkeypatch.setattr(main, "llm_settings", LLMSettings(model="test-model"))
+    monkeypatch.setattr(main, "langsmith_settings", main.LangSmithSettings(tracing=False))
     return TestClient(main.app)
 
 
@@ -108,6 +118,29 @@ def test_post_text_uses_summarizer_and_renders_result(monkeypatch):
     assert "Summarized APT28 used" in response.text
     assert "Custom prompt" in response.text
     assert "APT28" in response.text
+    assert FakeSummarizer.last_settings.model == "override-model"
+    assert FakeSummarizer.last_trace_context.sensitivity.value == "PA"
+
+
+def test_post_invalid_sensitivity_returns_400(monkeypatch):
+    client = _client(monkeypatch)
+    monkeypatch.setattr(main, "CTISummarizer", FakeSummarizer)
+
+    response = client.post("/", data={"text": "APT28 report", "sensitivity": "SECRET"})
+
+    assert response.status_code == 400
+    assert "Invalid sensitivity" in response.text
+
+
+def test_post_cu_passes_sensitivity_to_summarizer(monkeypatch):
+    client = _client(monkeypatch)
+    monkeypatch.setattr(main, "CTISummarizer", FakeSummarizer)
+
+    response = client.post("/", data={"text": "APT28 report", "sensitivity": "CU", "input_mode": "text"})
+
+    assert response.status_code == 200
+    assert FakeSummarizer.last_trace_context.sensitivity.value == "CU"
+    assert FakeSummarizer.last_trace_context.input_mode == "text"
 
 
 def test_post_text_returns_clean_summarization_error(monkeypatch):
