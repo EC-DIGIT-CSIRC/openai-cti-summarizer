@@ -698,14 +698,12 @@
               </div>
             </div>
           </div>
-
           <div class="checks">
             <label>
               <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check">
               <span>I know that I need to fact-check the generated report.</span>
             </label>
           </div>
-
           <div class="submit-row">
             <button class="submit-button" type="submit" id="submit_button" disabled>
               <span class="spinner" aria-hidden="true"></span>
@@ -815,7 +813,7 @@
     document.getElementById("sensitivity").addEventListener("change", updateModelOptions);
     document.getElementById("input-mode").addEventListener("change", updateInputMode);
     document.querySelector("form").addEventListener("submit", showSubmitSpinner);
-    ["accepted_tlp", "accepted_limitations", "accepted_need_to_fact_check"].forEach((id) => {
+    ["accepted_need_to_fact_check"].forEach((id) => {
       document.getElementById(id).addEventListener("change", updateSubmitState);
     });
 
