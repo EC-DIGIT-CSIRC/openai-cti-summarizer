@@ -654,7 +654,11 @@
             </div>
             <div class="inline-field">
               <label for="model">Model:</label>
-              <select id="model" name="model" data-selected-model="{{ model }}"></select>
+              <!-- <select id="model" name="model" data-selected-model="{{ model }}"></select> -->
+              <select id="model" name="model" data-selected-model="{{ model }}">
+                <option value="gpt-5.5" {% if model == "gpt-5.5" %}selected{% endif %}>GPT-5.5</option>
+                <option value="gpt-5.4-mini" {% if model == "gpt-5.4-mini" %}selected{% endif %}>GPT-5.4-mini</option>
+              </select>
             </div>
           </div>
 
@@ -815,7 +819,7 @@
     document.getElementById("sensitivity").addEventListener("change", updateModelOptions);
     document.getElementById("input-mode").addEventListener("change", updateInputMode);
     document.querySelector("form").addEventListener("submit", showSubmitSpinner);
-    ["accepted_tlp", "accepted_limitations", "accepted_need_to_fact_check"].forEach((id) => {
+    ["accepted_need_to_fact_check"].forEach((id) => {
       document.getElementById(id).addEventListener("change", updateSubmitState);
     });
 

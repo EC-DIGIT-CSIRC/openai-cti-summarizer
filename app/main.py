@@ -250,7 +250,7 @@ async def index(request: Request,           # request object
                     success=False,
                     model=request_llm_settings.model,
                     sensitivity=sensitivity,
-                    input_mode=input_mode or "file",
+                    input_mode=input_mode or "url",
                 ),
                 status_code=400,
             )
@@ -259,9 +259,9 @@ async def index(request: Request,           # request object
     if app_settings.dry_run:
         summary = CTISummary(
             summary="This is a sample response because DRY_RUN is enabled.",
-            key_points=["No request was sent to an LLM provider."],
+            # key_points=["No request was sent to an LLM provider."],
             ttps=[],
-            indicators=[],
+            indicators_of_compromise=[],
             threat_actors=[],
             confidence_score=1.0,
             report_metadata={"mode": "dry_run"},

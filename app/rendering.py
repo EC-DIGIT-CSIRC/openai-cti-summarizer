@@ -62,18 +62,18 @@ def render_summary_markdown(summary: CTISummary) -> str:
     """Render a CTISummary as markdown for the web UI and CLI."""
     lines = ["## Executive Summary", "", summary.summary.strip(), ""]
 
-    _append_list(lines, "Key Points", summary.key_points)
+    # _append_list(lines, "Key Points", summary.key_points)
     _append_list(lines, "TTPs", summary.ttps)
 
-    if summary.indicators:
-        lines.extend(["## Indicators", "", "| Type | Value |", "|---|---|"])
-        for indicator in summary.indicators:
-            lines.append(f"| {indicator.type} | {indicator.value} |")
+    if summary.indicators_of_compromise:
+        lines.extend(["## Indicators of Compromise", "", "|: Type |: Value |", "|---|---|"])
+        for indicator in summary.indicators_of_compromise:
+            lines.append(f"|: {indicator.type} |: {indicator.value} |")
         lines.append("")
 
     _append_list(lines, "Threat Actors", summary.threat_actors or [])
 
-    lines.extend(["## Confidence", "", f"{summary.confidence_score}", ""])
+    # lines.extend(["## Confidence", "", f"{summary.confidence_score}", ""])
 
     lines.extend(["## Report Metadata", "", "```json"])
     lines.append(json.dumps(summary.report_metadata, indent=2, sort_keys=True))

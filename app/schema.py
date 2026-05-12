@@ -240,12 +240,12 @@ class Indicator(BaseModel):
 
 class CTISummary(BaseModel):
     summary: str = Field(..., description="A short summary of the CTI report.")
-    key_points: List[str] = Field(..., description="A list of key points extracted from the report.")
+    # key_points: List[str] = Field(..., description="A list of key points extracted from the report.")
     ttps: List[str] = Field(
         ...,
         description="A list of Tactics, Techniques, and Procedures (TTPs) mentioned in the report. Prefer canonical ATT&CK identifiers and names when possible.",
     )
-    indicators: Optional[List[Indicator]] = Field(
+    indicators_of_compromise: Optional[List[Indicator]] = Field(
         None,
         description="A list of Indicators of Compromise (IOCs) mentioned in the report.",
     )
