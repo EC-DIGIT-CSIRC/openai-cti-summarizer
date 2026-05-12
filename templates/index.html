@@ -701,14 +701,6 @@
 
           <div class="checks">
             <label>
-              <input type="checkbox" id="accepted_tlp" name="accepted_tlp">
-              <span>I will only submit TLP:CLEAR data, or data approved for the selected sensitivity.</span>
-            </label>
-            <label>
-              <input type="checkbox" id="accepted_limitations" name="accepted_limitations">
-              <span>I accept the <a href="{{ url_for('static', path='/help.html#limitations') }}">limitations</a>.</span>
-            </label>
-            <label>
               <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check">
               <span>I know that I need to fact-check the generated report.</span>
             </label>
@@ -798,7 +790,7 @@
     }
 
     function updateSubmitState() {
-      const accepted = ["accepted_tlp", "accepted_limitations", "accepted_need_to_fact_check"]
+      const accepted = ["accepted_need_to_fact_check"]
         .every((id) => document.getElementById(id).checked);
       document.getElementById("submit_button").disabled = !accepted;
     }
