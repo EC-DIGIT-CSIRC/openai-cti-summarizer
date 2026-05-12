@@ -129,7 +129,7 @@ def convert_pdf_to_markdown(filename: str) -> str:
         page = doc.load_page(page_num)
 
         # Extract text from the page
-        text = page.get_text()
+        text = str(page.get_text())
 
         # Add the text to our markdown content, followed by a page break
         markdown_content += text + "\n\n---\n\n"
