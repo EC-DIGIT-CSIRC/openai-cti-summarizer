@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.config import AppSettings, LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings
+from app.config import AppSettings, LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings, RedisSettings
 
 
 def test_default_llm_model_is_gpt_5_5():
@@ -54,6 +54,17 @@ def test_langsmith_settings_read_environment(monkeypatch):
     assert settings.endpoint == "https://api.smith.langchain.com"
     assert settings.api_key is not None
     assert settings.project == "cti-test"
+
+
+def test_redis_settings_build_authenticated_url(monkeypatch):
+    monkeypatch.setenv("REDIS_USER", "cache-user")
+    monkeypatch.setenv("REDIS_PASSWORD", "cache-password")
+    monkeypatch.setenv("REDIS_HOST", "redis")
+    monkeypatch.setenv("REDIS_DB", "2")
+
+    settings = RedisSettings()
+
+    assert settings.url == "redis://cache-user:cache-password@redis:6379/2"
 
 
 def test_langsmith_tracing_requires_api_key(monkeypatch):

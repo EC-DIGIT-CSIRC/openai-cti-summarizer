@@ -165,7 +165,7 @@ def test_cti_summary_uses_cached_grounding_hints_and_soft_normalization(tmp_path
     summary = schema.CTISummary(
         summary="Test summary",
         key_points=[],
-        indicators=None,
+        indicators_of_compromise=None,
         ttps=["t1055.011", "Brand New Technique"],
         threat_actors=["apt28", "Unknown Group"],
         confidence_score=0.7,
@@ -178,7 +178,7 @@ def test_cti_summary_uses_cached_grounding_hints_and_soft_normalization(tmp_path
         "Brand New Technique",
     ]
     assert summary.threat_actors == ["APT28", "Unknown Group"]
-    assert summary.indicators is None
+    assert summary.indicators_of_compromise is None
     assert summary.yara_rules is None
 
 
@@ -192,7 +192,7 @@ def test_cti_summary_allows_empty_ttps_and_nullable_optional_lists():
         summary="Test summary",
         key_points=["Required key point"],
         ttps=[],
-        indicators=None,
+        indicators_of_compromise=None,
         threat_actors=None,
         confidence_score=0.2,
         report_metadata={"source": "unit-test"},
@@ -200,7 +200,7 @@ def test_cti_summary_allows_empty_ttps_and_nullable_optional_lists():
     )
 
     assert summary.ttps == []
-    assert summary.indicators is None
+    assert summary.indicators_of_compromise is None
     assert summary.threat_actors is None
     assert summary.report_metadata == {"source": "unit-test"}
 

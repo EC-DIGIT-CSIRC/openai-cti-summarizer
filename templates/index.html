@@ -703,6 +703,10 @@
           </div>
           <div class="checks">
             <label>
+              <input type="checkbox" id="reanalyze" name="reanalyze" {% if reanalyze %}checked{% endif %}>
+              <span>Re-analyze with the LLM instead of using a cached summary.</span>
+            </label>
+            <label>
               <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check">
               <span>I know that I need to fact-check the generated report.</span>
             </label>
