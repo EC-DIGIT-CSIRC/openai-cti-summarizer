@@ -66,7 +66,7 @@ def template_context(
         "username": username,
         "model": model or llm_settings.model,
         "sensitivity": sensitivity or "PA",
-        "input_mode": input_mode or ("url" if url else "text"),
+        "input_mode": input_mode or ("text" if text else "url"),
         "version": VERSION,
         "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
     }

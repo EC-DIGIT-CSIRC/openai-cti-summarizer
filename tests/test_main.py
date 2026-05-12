@@ -80,6 +80,7 @@ def test_get_index_renders_form(monkeypatch):
     assert response.status_code == 200
     assert "CTI Extractor" in response.text
     assert "Report input" in response.text
+    assert '<option value="url" selected>Fetch from URL</option>' in response.text
 
 
 def test_post_without_input_returns_400(monkeypatch):
