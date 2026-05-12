@@ -115,6 +115,31 @@ class LangSmithSettings(BaseSettings):
         return type(self)(**{**self.model_dump(), **cleaned})
 
 
+class RedisSettings(BaseSettings):
+    """Required Redis cache settings."""
+
+    model_config = SettingsConfigDict(env_prefix="REDIS_", extra="ignore")
+
+    user: str
+    password: SecretStr
+    host: str = "redis"
+    port: int = 6379
+    db: int = 0
+
+    @field_validator("user")
+    @classmethod
+    def _user_must_not_be_empty(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("Redis user must not be empty.")
+        return cleaned
+
+    @property
+    def url(self) -> str:
+        """Return the Redis URL used by the application container."""
+        return f"redis://{self.user}:{self.password.get_secret_value()}@{self.host}:{self.port}/{self.db}"
+
+
 class AppSettings(BaseSettings):
     """General web app settings."""
 

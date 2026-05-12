@@ -8,6 +8,7 @@ from typing import Any, Awaitable, Callable
 import langsmith as ls
 
 from .config import LangSmithSettings, Sensitivity
+from .misc import secret_value as _secret_value
 from .rendering import summary_to_jsonable
 from .settings import log
 
@@ -37,14 +38,6 @@ def parse_sensitivity(value: str | Sensitivity | None) -> Sensitivity:
 def langsmith_tracing_allowed(settings: LangSmithSettings, sensitivity: Sensitivity) -> bool:
     """Return true when LangSmith may receive full report and summary content."""
     return settings.tracing and sensitivity == Sensitivity.PA
-
-
-def _secret_value(value: Any | None) -> str | None:
-    if value is None:
-        return None
-    if hasattr(value, "get_secret_value"):
-        return value.get_secret_value()
-    return str(value)
 
 
 def _metadata(context: TraceContext, provider: str, model: str, output_mode: str) -> dict[str, Any]:

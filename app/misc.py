@@ -2,6 +2,8 @@
 misc.py - collection of all kinds of stuff
 """
 
+from typing import Any
+
 LORE_IPSUM = """
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Malesuada pellentesque elit eget gravida cum. Sed id semper risus in hendrerit. Dui vivamus arcu felis bibendum ut tristique et. Felis imperdiet proin fermentum leo vel orci. Sit amet facilisis magna etiam tempor orci eu lobortis. Enim ut tellus elementum sagittis. Nulla at volutpat diam ut venenatis tellus in metus vulputate. Phasellus faucibus scelerisque eleifend donec pretium vulputate. Cras adipiscing enim eu turpis egestas pretium aenean. Tincidunt augue interdum velit euismod in pellentesque massa. Malesuada fames ac turpis egestas maecenas pharetra convallis posuere. Auctor augue mauris augue neque gravida in. Tempus imperdiet nulla malesuada pellentesque elit eget gravida cum. Morbi tristique senectus et netus et malesuada fames ac.
 
@@ -39,4 +41,12 @@ def strtobool(value: str) -> bool:
 
     raise ValueError(f"Invalid truth value: {value}")
 
+
+def secret_value(value: Any | None) -> str | None:
+    """Return the plain value for pydantic secrets and normal strings."""
+    if value is None:
+        return None
+    if hasattr(value, "get_secret_value"):
+        return value.get_secret_value()
+    return str(value)
 

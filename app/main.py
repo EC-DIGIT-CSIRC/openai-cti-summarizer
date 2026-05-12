@@ -1,6 +1,8 @@
 """Main FastAPI file. Provides the app ASGI entry point."""
 import sys
 import tempfile
+from contextlib import asynccontextmanager
+from functools import cache
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -16,7 +18,17 @@ from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from .auth import get_current_username
-from .config import AppSettings, LangSmithSettings, LLMSettings
+from .config import AppSettings, LangSmithSettings, LLMSettings, RedisSettings
+from .redis_cache import (
+    RedisCacheStore,
+    input_cache_payload,
+    llm_cache_contract,
+    llm_cache_key,
+    llm_cache_payload,
+    pdf_cache_key,
+    text_cache_key,
+    url_cache_key,
+)
 from .rendering import render_summary_markdown, summary_to_jsonable
 from .schema import CTISummary
 from .settings import log
@@ -35,11 +47,26 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 app_settings = AppSettings()
 llm_settings = LLMSettings()
 langsmith_settings = LangSmithSettings()
-app = FastAPI(version=VERSION)
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    """Fail startup when the required Redis cache is unavailable."""
+    await get_cache_store().ping()
+    yield
+
+
+app = FastAPI(version=VERSION, lifespan=lifespan)
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 log.info("llm_settings_loaded", extra={"provider": llm_settings.provider.value, "model": llm_settings.model})
+
+
+@cache
+def get_cache_store() -> RedisCacheStore:
+    """Return the required Redis cache store."""
+    return RedisCacheStore(RedisSettings().url)
 
 
 def template_context(
@@ -54,6 +81,7 @@ def template_context(
     model: str | None = None,
     sensitivity: str | None = None,
     input_mode: str | None = None,
+    reanalyze: bool | None = None,
 ) -> dict:
     """Build common template context for the web UI."""
     return {
@@ -67,6 +95,7 @@ def template_context(
         "model": model or llm_settings.model,
         "sensitivity": sensitivity or "PA",
         "input_mode": input_mode or ("text" if text else "url"),
+        "reanalyze": bool(reanalyze),
         "version": VERSION,
         "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
     }
@@ -95,6 +124,24 @@ async def fetch_text_from_url(url: str) -> str:
     response = requests.get(url, timeout=5)
     soup = BeautifulSoup(response.text, 'html.parser')
     text = soup.get_text()
+    return text
+
+
+async def fetch_text_from_url_cached(url: str, store: RedisCacheStore) -> str:
+    """Fetch URL text, reusing the Redis URL cache when available."""
+    parsed_url = urlparse(url)
+    if not all([parsed_url.scheme, parsed_url.netloc]):
+        raise ValueError("Invalid URL")
+
+    key = url_cache_key(url)
+    cached = await store.get_json(key)
+    if cached and isinstance(cached.get("text"), str):
+        log.info("cti_url_cache_hit", extra={"cache_key": key})
+        return cached["text"]
+
+    text = await fetch_text_from_url(url)
+    await store.set_json(key, input_cache_payload("url", text, source_ref=url))
+    log.info("cti_url_cache_stored", extra={"cache_key": key})
     return text
 
 
@@ -138,6 +185,7 @@ def convert_pdf_to_markdown(filename: str) -> str:
 
 
 # The main POST method. Input can either be a URL or a PDF file or a textarea text
+# pylint: disable=too-many-branches,too-many-statements
 @app.post("/", response_class=HTMLResponse)
 async def index(request: Request,           # request object
                 text: str = Form(None),     # the text in the textarea
@@ -145,6 +193,7 @@ async def index(request: Request,           # request object
                 pdffile: UploadFile = File(None),
                 system_prompt: str = Form(None), model: str = Form(None),
                 sensitivity: str = Form(None), input_mode: str = Form(None),
+                reanalyze: bool = Form(False),
                 username: str = Depends(get_current_username)):
     """HTTP POST method for the default page. This gets called when the user already HTTP POSTs a text which should be summarized."""
 
@@ -171,6 +220,7 @@ async def index(request: Request,           # request object
                 model=model,
                 sensitivity=sensitivity,
                 input_mode=input_mode,
+                reanalyze=reanalyze,
             ),
             status_code=400,
         )
@@ -192,16 +242,18 @@ async def index(request: Request,           # request object
                 model=model,
                 sensitivity=sensitivity,
                 input_mode=input_mode,
+                reanalyze=reanalyze,
             ),
             status_code=400,
         )
 
     request_llm_settings = llm_settings.with_overrides(model=model)
     prompt = system_prompt or app_settings.system_prompt
+    store = get_cache_store()
 
     if url:
         try:
-            text = await fetch_text_from_url(url)
+            text = await fetch_text_from_url_cached(url, store)
         except Exception as ex:
             return templates.TemplateResponse(
                 request,
@@ -217,6 +269,7 @@ async def index(request: Request,           # request object
                     model=request_llm_settings.model,
                     sensitivity=sensitivity,
                     input_mode=input_mode or "url",
+                    reanalyze=reanalyze,
                 ),
                 status_code=400,
             )
@@ -224,18 +277,30 @@ async def index(request: Request,           # request object
     elif pdffile:
         log.warning("we got a pdffile")
         try:
-            suffix = ".pdf"
-            with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-                tmp.write(pdffile.file.read())
-                tmp_pdf_path = tmp.name  # Temp file path
-                log.warning(f"stored as {tmp_pdf_path}")
+            pdf_bytes = pdffile.file.read()
+            key = pdf_cache_key(pdf_bytes)
+            cached = await store.get_json(key)
+            if cached and isinstance(cached.get("text"), str):
+                text = cached["text"]
+                log.info("cti_pdf_cache_hit", extra={"cache_key": key})
+            else:
+                suffix = ".pdf"
+                with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+                    tmp.write(pdf_bytes)
+                    tmp_pdf_path = tmp.name  # Temp file path
+                    log.warning(f"stored as {tmp_pdf_path}")
 
-            # Convert PDF to Markdown
-            text = convert_pdf_to_markdown(tmp_pdf_path)
-            log.warning(f"converted as {text[:100]}")
+                # Convert PDF to Markdown
+                text = convert_pdf_to_markdown(tmp_pdf_path)
+                log.warning(f"converted as {text[:100]}")
 
-            # Cleanup the temporary file
-            Path(tmp_pdf_path).unlink()
+                # Cleanup the temporary file
+                Path(tmp_pdf_path).unlink()
+                await store.set_json(
+                    key,
+                    input_cache_payload("pdf", text, source_ref=pdffile.filename or ""),
+                )
+                log.info("cti_pdf_cache_stored", extra={"cache_key": key})
         except Exception as ex:
             return templates.TemplateResponse(
                 request,
@@ -251,9 +316,19 @@ async def index(request: Request,           # request object
                     model=request_llm_settings.model,
                     sensitivity=sensitivity,
                     input_mode=input_mode or "url",
+                    reanalyze=reanalyze,
                 ),
                 status_code=400,
             )
+    else:
+        key = text_cache_key(text)
+        cached = await store.get_json(key)
+        if cached and isinstance(cached.get("text"), str):
+            text = cached["text"]
+            log.info("cti_text_cache_hit", extra={"cache_key": key})
+        else:
+            await store.set_json(key, input_cache_payload("text", text))
+            log.info("cti_text_cache_stored", extra={"cache_key": key})
 
     # we got the text from the URL or the pdffile was converted... now check if we should actually summarize
     if app_settings.dry_run:
@@ -269,8 +344,14 @@ async def index(request: Request,           # request object
         )
     else:
         try:
-            summary = (
-                await CTISummarizer(
+            contract = llm_cache_contract(text, prompt, request_llm_settings)
+            key = llm_cache_key(contract)
+            cached = None if reanalyze else await store.get_json(key)
+            if cached and isinstance(cached.get("summary"), dict):
+                summary = CTISummary.model_validate(cached["summary"])
+                log.info("cti_llm_cache_hit", extra={"cache_key": key})
+            else:
+                result = await CTISummarizer(
                     request_llm_settings,
                     langsmith_settings=langsmith_settings,
                     trace_context=TraceContext(
@@ -279,7 +360,17 @@ async def index(request: Request,           # request object
                         app_version=VERSION,
                     ),
                 ).summarize(text, prompt)
-            ).summary
+                summary = result.summary
+                await store.set_json(
+                    key,
+                    llm_cache_payload(
+                        summary,
+                        contract,
+                        duration_ms=result.duration_ms,
+                        usage=result.usage,
+                    ),
+                )
+                log.info("cti_llm_cache_stored", extra={"cache_key": key, "reanalyze": reanalyze})
         except SummarizationError as ex:
             return templates.TemplateResponse(
                 request,
@@ -295,6 +386,7 @@ async def index(request: Request,           # request object
                     "model": request_llm_settings.model,
                     "sensitivity": validated_sensitivity.value,
                     "input_mode": input_mode or ("url" if url else "text"),
+                    "reanalyze": reanalyze,
                     "version": VERSION,
                     "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
                 },
@@ -319,6 +411,7 @@ async def index(request: Request,           # request object
             model=request_llm_settings.model,
             sensitivity=sensitivity,
             input_mode=input_mode,
+            reanalyze=reanalyze,
         ),
     )
 

@@ -38,6 +38,8 @@ services:
     environment:
       PYTHONPATH: /app
     env_file: .env
+    depends_on:
+      - redis
     ports:
       - "9001:9999"
     dns: 8.8.8.8
@@ -58,7 +60,32 @@ services:
       - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
     networks:
       - web
+      - backend
+
+  redis:
+    image: redis:7-alpine
+    env_file: .env
+    command:
+      - sh
+      - -c
+      - >
+        redis-server
+        --appendonly yes
+        --save 60 1
+        --user default off
+        --user "$${REDIS_USER}" on ">$${REDIS_PASSWORD}" "~*" "&*" "+@all"
+    volumes:
+      - redis-data:/data
+    expose:
+      - "6379"
+    networks:
+      - backend
 
 networks:
   web:
     external: true
+  backend:
+    internal: true
+
+volumes:
+  redis-data:
