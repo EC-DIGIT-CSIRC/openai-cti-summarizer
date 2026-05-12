@@ -218,6 +218,10 @@
       font-weight: 700;
     }
 
+    .sidebar-links a[aria-current="page"] {
+      color: var(--ec-link-dark);
+    }
+
     .main {
       grid-column: 2;
       padding: 36px 40px 28px;
@@ -619,15 +623,16 @@
       <div class="sidebar-main">
         <a class="new-chat" href="/">+ New chat</a>
         <section class="news" aria-label="News">
-          <h2>MARCH 2026</h2>
+          <!-- <h2>MARCH 2026</h2>
           <div class="news-item">
             <span>what's the best...</span>
             <span class="badge-pa">PA</span>
           </div>
+        -->
         </section>
       </div>
       <nav class="sidebar-links" aria-label="Secondary navigation">
-        <a href="{{ url_for('static', path='/limits.html') }}">Help</a>
+        <a href="{{ url_for('static', path='/help.html') }}">Help</a>
         <a href="{{ repo_url }}">About</a>
       </nav>
     </aside>
@@ -701,7 +706,7 @@
             </label>
             <label>
               <input type="checkbox" id="accepted_limitations" name="accepted_limitations">
-              <span>I accept the <a href="{{ url_for('static', path='/limits.html') }}">limitations</a>.</span>
+              <span>I accept the <a href="{{ url_for('static', path='/help.html#limitations') }}">limitations</a>.</span>
             </label>
             <label>
               <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check">
