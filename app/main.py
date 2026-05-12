@@ -1,64 +1,75 @@
-"""Main FastAPI file. Provides the app WSGI entry point."""
-import os
+"""Main FastAPI file. Provides the app ASGI entry point."""
 import sys
 import tempfile
+from pathlib import Path
 from urllib.parse import urlparse
-from misc import strtobool
-
-import requests
 
 import fitz  # PyMuPDF
-
-import uvicorn
-from fastapi import FastAPI, Request, Form, Depends, UploadFile, File
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
-from starlette.middleware.base import BaseHTTPMiddleware
 import markdown
-
+import requests
+import uvicorn
 from bs4 import BeautifulSoup
-from dotenv import load_dotenv, find_dotenv
+from fastapi import Depends, FastAPI, File, Form, Request, UploadFile
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.base import BaseHTTPMiddleware
 
-from summarizer import Summarizer       # pylint: ignore=import-error
-from auth import get_current_username   # pylint: ignore=import-error
-
-from settings import log                # pylint: ignore=import-error
-
-
-# first get the env parametting
-if not load_dotenv(find_dotenv(), verbose=True, override=False):     # read local .env file
-    log.warning("Could not find .env file! Assuming ENV vars work")
+from .auth import get_current_username
+from .config import AppSettings, LangSmithSettings, LLMSettings
+from .rendering import render_summary_markdown, summary_to_jsonable
+from .schema import CTISummary
+from .settings import log
+from .summarizer import CTISummarizer, SummarizationError
+from .tracing import TraceContext, parse_sensitivity
 
 try:
-    with open('../VERSION.txt', encoding='utf-8') as _f:
+    with open(Path(__file__).resolve().parent.parent / 'VERSION.txt', encoding='utf-8') as _f:
         VERSION = _f.readline().rstrip('\n')
-except Exception as e:
+except Exception:
     log.error("could not find VERSION.txt, bailing out.")
     sys.exit(-1)
 
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+app_settings = AppSettings()
+llm_settings = LLMSettings()
+langsmith_settings = LangSmithSettings()
 app = FastAPI(version=VERSION)
-templates = Jinja2Templates(directory="/templates")
-app.mount("/static", StaticFiles(directory="/static"), name="static")
-GO_AZURE = bool(strtobool(os.getenv('USE_MS_AZURE', 'false')))
-OUTPUT_JSON = bool(strtobool(os.getenv('OUTPUT_JSON', 'false')))
-DRY_RUN = bool(strtobool(os.getenv('DRY_RUN', 'false')))
-OPENAI_MODEL = os.getenv('OPENAI_MODEL', 'gpt-5.4-mini')
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
-# First detect if we should invoke OpenAI via MS Azure or directly
-try:
-    GO_AZURE = bool(strtobool(os.getenv('USE_AZURE', 'false')))
-except Exception as e:
-    log.warning(
-        f"Could not read 'USE_AZURE' env var. Reason: '{str(e)}'. Reverting to false.")
-    GO_AZURE = False
+log.info("llm_settings_loaded", extra={"provider": llm_settings.provider.value, "model": llm_settings.model})
 
-# print out settings
-log.info(f"{GO_AZURE=}")
-log.info(f"{OUTPUT_JSON=}")
-log.info(f"{DRY_RUN=}")
-log.info(f"{OPENAI_MODEL=}")
+
+def template_context(
+    request: Request,
+    username: str,
+    *,
+    text: str | None = None,
+    url: str | None = None,
+    system_prompt: str | None = None,
+    result: str | None = None,
+    success: bool | None = None,
+    model: str | None = None,
+    sensitivity: str | None = None,
+    input_mode: str | None = None,
+) -> dict:
+    """Build common template context for the web UI."""
+    return {
+        "request": request,
+        "text": text,
+        "url": url,
+        "system_prompt": system_prompt or app_settings.system_prompt,
+        "result": result,
+        "success": success,
+        "username": username,
+        "model": model or llm_settings.model,
+        "sensitivity": sensitivity or "PA",
+        "input_mode": input_mode or ("text" if text else "url"),
+        "version": VERSION,
+        "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
+    }
 
 
 class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
@@ -71,8 +82,6 @@ class HTTPSRedirectMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(HTTPSRedirectMiddleware)
-
-summarizer = Summarizer(go_azure=GO_AZURE, model=OPENAI_MODEL, output_json=OUTPUT_JSON)
 
 
 async def fetch_text_from_url(url: str) -> str:
@@ -92,7 +101,11 @@ async def fetch_text_from_url(url: str) -> str:
 @app.get("/", response_class=HTMLResponse)
 def get_index(request: Request, username: str = Depends(get_current_username)):
     """Return the default page."""
-    return templates.TemplateResponse(request, "index.html", {"request": request, "system_prompt": os.environ['SYSTEM_PROMPT'], "username": username})
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        template_context(request, username),
+    )
 
 
 def convert_pdf_to_markdown(filename: str) -> str:
@@ -116,7 +129,7 @@ def convert_pdf_to_markdown(filename: str) -> str:
         page = doc.load_page(page_num)
 
         # Extract text from the page
-        text = page.get_text()
+        text = str(page.get_text())
 
         # Add the text to our markdown content, followed by a page break
         markdown_content += text + "\n\n---\n\n"
@@ -130,7 +143,8 @@ async def index(request: Request,           # request object
                 text: str = Form(None),     # the text in the textarea
                 url: str = Form(None),      # alternatively the URL
                 pdffile: UploadFile = File(None),
-                system_prompt: str = Form(None), model: str = Form('model'), token_count: int = Form(100),
+                system_prompt: str = Form(None), model: str = Form(None),
+                sensitivity: str = Form(None), input_mode: str = Form(None),
                 username: str = Depends(get_current_username)):
     """HTTP POST method for the default page. This gets called when the user already HTTP POSTs a text which should be summarized."""
 
@@ -143,17 +157,69 @@ async def index(request: Request,           # request object
     else:
         log.error("no pdffile, no text, no url. Bailing out.")
         error = "Expected either url field or text field or a PDF file. Please specify one at least."
-        result = None
-        return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            template_context(
+                request,
+                username,
+                text=text,
+                url=url,
+                system_prompt=system_prompt,
+                result=error,
+                success=False,
+                model=model,
+                sensitivity=sensitivity,
+                input_mode=input_mode,
+            ),
+            status_code=400,
+        )
 
-    summarizer.model = model
-    summarizer.max_tokens = token_count
+    try:
+        validated_sensitivity = parse_sensitivity(sensitivity)
+    except ValueError as ex:
+        return templates.TemplateResponse(
+            request,
+            "index.html",
+            template_context(
+                request,
+                username,
+                text=text,
+                url=url,
+                system_prompt=system_prompt,
+                result=str(ex),
+                success=False,
+                model=model,
+                sensitivity=sensitivity,
+                input_mode=input_mode,
+            ),
+            status_code=400,
+        )
+
+    request_llm_settings = llm_settings.with_overrides(model=model)
+    prompt = system_prompt or app_settings.system_prompt
 
     if url:
         try:
             text = await fetch_text_from_url(url)
         except Exception as ex:
-            return templates.TemplateResponse(request, "index.html", {"request": request, "text": url, "system_prompt": system_prompt, "result": f"Could not fetch URL. Reason {str(ex)}", "success": False}, status_code=400)
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                template_context(
+                    request,
+                    username,
+                    text=text,
+                    url=url,
+                    system_prompt=prompt,
+                    result=f"Could not fetch URL. Reason {str(ex)}",
+                    success=False,
+                    model=request_llm_settings.model,
+                    sensitivity=sensitivity,
+                    input_mode=input_mode or "url",
+                ),
+                status_code=400,
+            )
 
     elif pdffile:
         log.warning("we got a pdffile")
@@ -169,31 +235,93 @@ async def index(request: Request,           # request object
             log.warning(f"converted as {text[:100]}")
 
             # Cleanup the temporary file
-            os.unlink(tmp_pdf_path)
+            Path(tmp_pdf_path).unlink()
         except Exception as ex:
-            return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": f"Could not process the PDF file. Reason {str(ex)}", "success": False}, status_code=400)
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                template_context(
+                    request,
+                    username,
+                    text=text,
+                    url=url,
+                    system_prompt=prompt,
+                    result=f"Could not process the PDF file. Reason {str(ex)}",
+                    success=False,
+                    model=request_llm_settings.model,
+                    sensitivity=sensitivity,
+                    input_mode=input_mode or "url",
+                ),
+                status_code=400,
+            )
 
     # we got the text from the URL or the pdffile was converted... now check if we should actually summarize
-    if DRY_RUN:
-        result = "This is a sample response, we are in dry-run mode. We don't want to waste money for querying the API."
-        error = None
+    if app_settings.dry_run:
+        summary = CTISummary(
+            summary="This is a sample response because DRY_RUN is enabled.",
+            # key_points=["No request was sent to an LLM provider."],
+            ttps=[],
+            indicators_of_compromise=[],
+            threat_actors=[],
+            confidence_score=1.0,
+            report_metadata={"mode": "dry_run"},
+            yara_rules=[],
+        )
     else:
-        result, error = summarizer.summarize(text, system_prompt)
+        try:
+            summary = (
+                await CTISummarizer(
+                    request_llm_settings,
+                    langsmith_settings=langsmith_settings,
+                    trace_context=TraceContext(
+                        sensitivity=validated_sensitivity,
+                        input_mode=input_mode or ("url" if url else "text"),
+                        app_version=VERSION,
+                    ),
+                ).summarize(text, prompt)
+            ).summary
+        except SummarizationError as ex:
+            return templates.TemplateResponse(
+                request,
+                "index.html",
+                {
+                    "request": request,
+                    "text": text,
+                    "url": url,
+                    "system_prompt": prompt,
+                    "result": str(ex),
+                    "success": False,
+                    "username": username,
+                    "model": request_llm_settings.model,
+                    "sensitivity": validated_sensitivity.value,
+                    "input_mode": input_mode or ("url" if url else "text"),
+                    "version": VERSION,
+                    "repo_url": "https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer",
+                },
+                status_code=400,
+            )
 
-    if error:
-        return templates.TemplateResponse(request, "index.html", {"request": request, "text": text, "system_prompt": system_prompt, "result": error, "success": False, "username": username}, status_code=400)
+    if app_settings.output_json:
+        return JSONResponse(summary_to_jsonable(summary))
 
-    result = markdown.markdown(result)
-    return templates.TemplateResponse(request, "index.html", {
-        "request": request,
-        "text": text,
-        "system_prompt": system_prompt,
-        "result": result,
-        "success": True,
-        "model": model,
-        "username": username,
-        "token_count": token_count})
+    result = markdown.markdown(render_summary_markdown(summary), extensions=["tables", "fenced_code"])
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        template_context(
+            request,
+            username,
+            text=text,
+            url=url,
+            system_prompt=prompt,
+            result=result,
+            success=True,
+            model=request_llm_settings.model,
+            sensitivity=sensitivity,
+            input_mode=input_mode,
+        ),
+    )
 
 
 if __name__ == "__main__":
-    uvicorn.run('main:app', host="localhost", port=9999, reload=True)
+    uvicorn.run('app.main:app', host="localhost", port=9999, reload=True)

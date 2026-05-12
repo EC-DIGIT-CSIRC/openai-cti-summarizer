@@ -1,325 +1,829 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Summarize this (via OpenAI)</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', path='/main.css') }}" />
-  <link rel="stylesheet" href="{{ url_for('static', path='/markdown-styles.css') }}" />
-  <script>
-    function enableSubmit() {
-      var checkBox_tlp = document.getElementById("accepted_tlp");
-      var checkBox_limitations = document.getElementById("accepted_limitations");
-      var checkBox_fact_check = document.getElementById("accepted_need_to_fact_check");
-      var button = document.getElementById("submit_button");
+  <title>CTI Extractor</title>
+  <link rel="shortcut icon" href="{{ url_for('static', path='/quote-150x150.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='/markdown-styles.css') }}">
+  <style>
+    :root {
+      --ec-blue: #1c1c45;
+      --ec-blue-dark: #09092f;
+      --ec-link: #0046ff;
+      --ec-link-dark: #0035bf;
+      --surface: #fbfbfb;
+      --surface-soft: #f6f6f8;
+      --border: #d4d4dc;
+      --text: #00002e;
+      --muted: #505070;
+      --success: #006c45;
+      --danger: #b00020;
+      --shadow: 0 18px 48px rgba(0, 0, 46, .10);
+      --content-width: min(100%, 940px);
+    }
 
-      if (checkBox_tlp.checked && checkBox_limitations.checked && checkBox_fact_check.checked) {
-        button.disabled = false;
-      } else {
-        button.disabled = true;
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(to bottom, rgba(251, 251, 251, .97), rgba(251, 251, 251, .92)),
+        url("{{ url_for('static', path='/background-wave.png') }}") bottom center / 100% auto no-repeat,
+        var(--surface);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+    }
+
+    a {
+      color: var(--ec-link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      grid-template-rows: 78px minmax(0, 1fr) auto;
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 78px;
+      padding: 0 32px;
+      color: #fff;
+      background: var(--ec-blue);
+    }
+
+    .brand,
+    .topbar-actions,
+    .settings-row,
+    .inline-field,
+    .result-header,
+    .footer-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand {
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .menu-button {
+      width: 38px;
+      height: 38px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      cursor: pointer;
+      display: inline-grid;
+      place-items: center;
+      gap: 6px;
+    }
+
+    .menu-button span,
+    .menu-button::before,
+    .menu-button::after {
+      content: "";
+      display: block;
+      width: 30px;
+      height: 3px;
+      border-radius: 2px;
+      background: #fff;
+    }
+
+    .brand-logo {
+      width: 70px;
+      height: 54px;
+      border: 0;
+      background: #039;
+      box-shadow: none;
+    }
+
+    .brand-name {
+      font-size: clamp(1.7rem, 2.3vw, 2.4rem);
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 0;
+    }
+
+    .topbar-actions {
+      gap: 28px;
+      white-space: nowrap;
+    }
+
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      line-height: 1.05;
+    }
+
+    .welcome small {
+      font-size: .85rem;
+      opacity: .9;
+    }
+
+    .welcome strong {
+      max-width: 260px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: 1.05rem;
+    }
+
+    .language {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .language-icon {
+      width: 34px;
+      height: 34px;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      display: inline-grid;
+      place-items: center;
+      font-size: 1rem;
+    }
+
+    .sidebar {
+      grid-row: 2 / 4;
+      padding: 30px 24px;
+      border-right: 1px solid #e1e1e7;
+      background: rgba(255, 255, 255, .78);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .new-chat {
+      color: var(--ec-link-dark);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .news {
+      margin-top: 70px;
+    }
+
+    .news h2 {
+      margin: 0 0 26px;
+      font-size: 1.1rem;
+      letter-spacing: .02em;
+    }
+
+    .news-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      color: #303050;
+      font-size: 1rem;
+    }
+
+    .badge-pa {
+      color: #fff;
+      background: var(--success);
+      border-radius: 999px;
+      padding: 4px 13px;
+      font-weight: 700;
+    }
+
+    .sidebar-links {
+      display: grid;
+      gap: 18px;
+      font-size: 1.08rem;
+    }
+
+    .sidebar-links a {
+      color: #303050;
+      font-weight: 700;
+    }
+
+    .sidebar-links a[aria-current="page"] {
+      color: var(--ec-link-dark);
+    }
+
+    .main {
+      grid-column: 2;
+      padding: 36px 40px 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .workspace {
+      width: min(100%, 1080px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      opacity: .95;
+    }
+
+    .page-title {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.8vw, 3rem);
+      line-height: 1;
+      text-align: center;
+      letter-spacing: 0;
+    }
+
+    .settings-row {
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 18px;
+      font-size: 1.08rem;
+    }
+
+    .inline-field {
+      gap: 10px;
+    }
+
+    label {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    select,
+    input[type="url"],
+    input[type="text"],
+    textarea {
+      width: 100%;
+      color: var(--text);
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    select {
+      min-height: 42px;
+      padding: 8px 40px 8px 12px;
+      cursor: pointer;
+    }
+
+    .inline-field select {
+      width: auto;
+      min-width: 130px;
+    }
+
+    #model {
+      min-width: 270px;
+    }
+
+    .panel {
+      width: var(--content-width);
+      background: rgba(255, 255, 255, .93);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 34px;
+    }
+
+    .input-mode-row {
+      display: flex;
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    .input-mode-row .field {
+      width: min(100%, 420px);
+    }
+
+    .input-area {
+      margin-top: 28px;
+      min-height: 260px;
+      display: flex;
+      align-items: stretch;
+      justify-content: center;
+    }
+
+    .input-pane {
+      width: 100%;
+    }
+
+    .input-card {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+      min-height: 250px;
+      padding: 24px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+      box-shadow: 0 2px 8px rgba(0, 0, 46, .06);
+    }
+
+    #url-pane .input-card {
+      min-height: auto;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .input-pane {
+      display: none;
+    }
+
+    .input-pane.is-active {
+      display: block;
+    }
+
+    input[type="url"],
+    input[type="text"],
+    textarea {
+      padding: 13px 14px;
+    }
+
+    textarea {
+      min-height: 188px;
+      resize: vertical;
+    }
+
+    .file-box {
+      min-height: 202px;
+      border: 1px dashed #a9a9ba;
+      border-radius: 12px;
+      padding: 42px 28px;
+      text-align: center;
+      background: var(--surface-soft);
+      display: grid;
+      align-content: center;
+      justify-items: center;
+      gap: 16px;
+    }
+
+    .checks {
+      margin-top: 6px;
+      display: grid;
+      gap: 10px;
+      color: #303050;
+      font-size: .9rem;
+    }
+
+    .checks label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-weight: 400;
+    }
+
+    .checks input {
+      margin-top: 4px;
+      flex: 0 0 auto;
+    }
+
+    .submit-row {
+      margin-top: 22px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .submit-button {
+      min-width: min(100%, 360px);
+      min-height: 58px;
+      border: 0;
+      border-radius: 8px;
+      color: #fff;
+      background: var(--ec-link);
+      cursor: pointer;
+      font-size: 1.15rem;
+      font-weight: 700;
+      transition: background .15s ease, opacity .15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .submit-button:hover:enabled {
+      background: var(--ec-link-dark);
+    }
+
+    .submit-button:disabled {
+      cursor: not-allowed;
+      opacity: .45;
+    }
+
+    .submit-button.is-loading {
+      opacity: .9;
+      cursor: wait;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, .45);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      display: none;
+    }
+
+    .submit-button.is-loading .spinner {
+      display: inline-block;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
       }
     }
-    function clearTextarea() {
-      document.getElementById("text").value = '';
-    }
-  </script>
-  <style>
-    #submit_button {
-      background-color: grey;
-      color: white;
+
+    .result-card {
+      width: var(--content-width);
+      margin-top: 16px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: var(--shadow);
     }
 
-    #submit_button:enabled {
-      background-color: #10a37f;
-    }
-  </style>
-  <style type="text/css">
-    .table-tlp {
-      width: 100%;
-      max-width: 70em;
-      border: 0.5px solid #666;
-    }
-
-    .table-tlp td {
-      padding: 0.5em;
-      line-height: 1.5em;
-      border: 0.5px solid #666;
-      background: #eeeeee;
-    }
-
-    .table-tlp .bg-blue {
-      background: #dbe5f1
-    }
-
-    .table-tlp .bg-green {
-      background: #ebf1dd
-    }
-
-    .table-tlp .bg-amber {
-      background: #fdeada
-    }
-
-    strong.tlp-clear,
-    span.tlp-clear {
-      font-size: 1.25em;
-      display: inline-block;
-      padding-left: .15em;
-      padding-right: .15em;
-    }
-
-    strong.tlp-clear,
-    span.tlp-clear,
-    .tlp-clear .tlp,
-    .tlp-clear .tlp::before {
+    .result-header {
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
       color: #fff;
-      background: #000;
+      background: var(--ec-blue);
+      font-weight: 700;
     }
 
-    strong.tlp-red,
-    span.tlp-red,
-    .tlp-red .tlp,
-    .tlp-red .tlp::before {
-      color: #FF2B2B !important;
-    }
-
-    .tlp-white .tlp::before,
-    .tlp-white.icon::before {
-      content: ' TLP:CLEAR ';
-      white-space: pre;
-      font-weight: bold;
-    }
-
-    .info-icon {
-      position: relative;
-    }
-
-    .tooltip {
-      visibility: hidden;
-      position: absolute;
-      z-index: 1;
-    }
-
-    .info-icon:hover .tooltip {
-      visibility: visible;
+    .result-card.error .result-header {
+      background: var(--danger);
     }
 
     .copy-button {
-      background-color: transparent;
-      color: #3273dc;
-      border: none;
-      transition: all 0.2s ease-in-out;
+      border: 1px solid rgba(255, 255, 255, .55);
+      border-radius: 6px;
+      color: #fff;
+      background: transparent;
+      padding: 7px 10px;
+      cursor: pointer;
     }
 
     .copy-button:hover {
-      background-color: #3273dc;
-      color: #fff;
+      background: rgba(255, 255, 255, .14);
+    }
+
+    .result-body {
+      padding: 22px;
+    }
+
+    .footer {
+      grid-column: 2;
+      padding: 18px 40px 26px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .footer-content {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px 20px;
+      text-align: center;
+    }
+
+    .heart {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+      }
+
+      .topbar {
+        padding: 14px 18px;
+        flex-wrap: wrap;
+      }
+
+      .brand-name {
+        font-size: 1.8rem;
+      }
+
+      .sidebar {
+        grid-row: auto;
+        border-right: 0;
+        border-bottom: 1px solid #e1e1e7;
+        padding: 18px;
+      }
+
+      .sidebar-main {
+        display: none;
+      }
+
+      .sidebar-links {
+        grid-template-columns: repeat(2, auto);
+        justify-content: center;
+      }
+
+      .main,
+      .footer {
+        grid-column: 1;
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .topbar-actions {
+        margin-left: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .brand-logo {
+        width: 58px;
+        height: 44px;
+      }
+
+      .brand-name {
+        font-size: 1.45rem;
+      }
+
+      .welcome {
+        display: none;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .page-title {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
-
 <body>
-  <main style="min-height: calc(100vh - 3rem);">
-    <!-- <div class="page"> -->
-    <section class="section"> <!-- main page section-->
-      <div class="container is-fluid"> <!-- logo , heading-->
-        <center>
-        <img src="{{ url_for('static', path='/quote-150x150.png') }}" class="icon" />
-        <h3>Summarize this</h3>
-        </center>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <!-- <button class="menu-button" type="button" aria-label="Open navigation"><span></span></button> -->
+        <svg class="brand-logo" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="European Union">
+          <rect width="900" height="600" fill="#039"></rect>
+          <g fill="#fc0" transform="translate(450 300)">
+            <path id="eu-star" d="M0,162.5 22.041947,230.338137 -35.664619,188.411863H35.664619L-22.041947,230.338137z"></path>
+            <use href="#eu-star" y="-400"></use>
+            <g id="eu-star-five">
+              <use href="#eu-star" transform="rotate(30) rotate(-30,0,200)"></use>
+              <use href="#eu-star" transform="rotate(60) rotate(-60,0,200)"></use>
+              <use href="#eu-star" transform="rotate(90) rotate(-90,0,200)"></use>
+              <use href="#eu-star" transform="rotate(120) rotate(-120,0,200)"></use>
+              <use href="#eu-star" transform="rotate(150) rotate(-150,0,200)"></use>
+            </g>
+            <use href="#eu-star-five" transform="scale(-1,1)"></use>
+          </g>
+        </svg>
+        <div class="brand-name">DIGIT S2 CSOC (SOCET)</div>
       </div>
-      <div class="container is-fluid">
-        <form action="/" method="post" enctype="multipart/form-data"> 
-          <!-- Limitations checkboxes -->
-          <div class="is-size-7">
-            <input type="checkbox" id="accepted_tlp" name="accepted_tlp" onclick="enableSubmit()" />
-            &nbsp;
-            <label for="accepted_tlp">I will only submit <a href="https://first.org/tlp"> <strong
-                  class="tlp-clear">TLP:CLEAR
-			    </strong></a> data (as according to the <strong><a href="https://myintracomm.ec.europa.eu/sg/senior/Documents/guidelines-on-the-use-of-online-generative-artificial-intelligence-tools.pdf">Commission guidelines on generative AI</a></strong>), or <strong><a href="https://webgate.ec.europa.eu/fpfis/wikis/pages/viewpage.action?spaceKey=CVTF&title=Azure+OpenAI">data which is OK to send to MS Azure's OpenAI service</a></strong> (if unsure, ask your line manager), ... and</label>
-            <p />
-            <input type="checkbox" id="accepted_limitations" name="accepted_limitations" onclick="enableSubmit()" />
-            &nbsp;
-            <label for="accepted_limitations">I accept the <a
-                href="{{ url_for('static', path='/limits.html') }}"><b>limitations</b></a></label>
-            </p>
-            <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check"
-              onclick="enableSubmit()" />
-            &nbsp;
-            <label for="accepted_need_to_fact_check">I know that I will need to <b>fact-check the generated
-                report</b></label>
-            </p>
-          <!-- / Limitations checkboxes -->
-          <!-- system prompt -->
-          <hr />
+      <div class="topbar-actions">
+        <div class="welcome" aria-label="Logged in user">
+          <small>Welcome </small>
+          <strong>{{ username }}</strong>
+        </div>
+        <div class="language" aria-label="Language">
+          <!-- <span class="language-icon">◎</span>
+          <span>EN</span> -->
+        </div>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <div class="sidebar-main">
+        <a class="new-chat" href="/">+ New chat</a>
+        <section class="news" aria-label="News">
+          <!-- <h2>MARCH 2026</h2>
+          <div class="news-item">
+            <span>what's the best...</span>
+            <span class="badge-pa">PA</span>
           </div>
-          <div class="field">
-            <p class="control has-icons-right has-icons-right">
-              <label class="label" for="system-prompt">Base prompt: </label>
-            </p>
-            &nbsp;
-            <p />
-            <!--
-				  <span class="icon is-right info-icon">
-					<i class="fas fa-info-circle"></i>
-				  </span>
-				  <div class="tooltip is-tooltip-info is-size-6">The <b>Base instructions</b> tell the system <b>who</b> you want to be and <b>what</b> it should do.</div>
-				-->
-            <input class="is-size-7" type="text" id="system-prompt" name="system_prompt"
-              style="color: #4c516d; width: 100%;"
-              placeholder="Tell GPT here what it should be, what it should do (e.g. 'you are a student summarizing a book chapter')"
-              autocomplete="off" value="{% if system_prompt %}{{ system_prompt }}{% endif %}">
-            </input>
+        -->
+        </section>
+      </div>
+      <nav class="sidebar-links" aria-label="Secondary navigation">
+        <a href="{{ url_for('static', path='/help.html') }}">Help</a>
+        <a href="{{ repo_url }}">About</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <section class="workspace" aria-labelledby="page-title">
+        <img class="hero-logo" src="{{ url_for('static', path='/quote-150x150.png') }}" alt="">
+        <h1 id="page-title" class="page-title">CTI Extractor</h1>
+
+        <form class="panel" action="/" method="post" enctype="multipart/form-data">
+          <div class="settings-row">
+            <div class="inline-field">
+              <label for="sensitivity">Sensitivity:</label>
+              <select id="sensitivity" name="sensitivity">
+                <option value="PA" {% if sensitivity == "PA" %}selected{% endif %}>PA</option>
+                <option value="CU" {% if sensitivity == "CU" %}selected{% endif %}>CU</option>
+                <option value="SNC" {% if sensitivity == "SNC" %}selected{% endif %}>SNC</option>
+              </select>
+            </div>
+            <div class="inline-field">
+              <label for="model">Model:</label>
+              <!-- <select id="model" name="model" data-selected-model="{{ model }}"></select> -->
+              <select id="model" name="model" data-selected-model="{{ model }}">
+                <option value="gpt-5.5" {% if model == "gpt-5.5" %}selected{% endif %}>GPT-5.5</option>
+                <option value="gpt-5.4-mini" {% if model == "gpt-5.4-mini" %}selected{% endif %}>GPT-5.4-mini</option>
+              </select>
+            </div>
           </div>
-          <div>
-            <!-- main inputs -->
-            <p class="control has-icons-right has-icons-right">
-              <label class="label" for="url">Summarize: </label>
-            </p>
-            &nbsp;
-            <p />
-            <!-- URL -->
+
+          <div class="input-mode-row">
             <div class="field">
-              <input class="is-size-7" type="url" id="url" name="url" style="color: #4c516d; width: 100%;"
-                placeholder="Enter URL" oninput="clearTextarea()">{% if url %}{{ url }}{% endif %}</input>
-              <p />
-              &nbsp;
-              <p />
+              <label for="input-mode">Report input</label>
+              <select id="input-mode" name="input_mode">
+                <option value="file" {% if input_mode == "file" %}selected{% endif %}>File upload</option>
+                <option value="url" {% if input_mode == "url" %}selected{% endif %}>Fetch from URL</option>
+                <option value="text" {% if input_mode == "text" %}selected{% endif %}>Copy &amp; paste report directly</option>
+              </select>
             </div>
-            <!-- PDF upload -->
-            <div class="field">
-              <label class="label">... or upload a PDF</label>
-              <div class="file is-boxed">
-                <label class="file-label">
-                  <input class="file-input" type="file" id="pdffile" name="pdffile" accept="application/pdf">
-                  <span class="file-cta">
-                    <span class="file-icon">
-                      <i class="fas fa-upload"></i>
-                    </span>
-                    <span class="file-label">
-                      Choose a PDF…
-                    </span>
-                  </span>
-                </label>
-              </div>
-            </div>
-            <!-- <div class="field">
-              <div class="control">
-                <button type="submit" class="button is-primary">Upload</button>
-              </div>
-            -->
-              <p />
-              &nbsp;
-              <p />
-            </div>
-            <!-- / PDF upload -->
-            <!-- or text... -->
-            <div class="field">
-              <!-- or ... -->
-              <label class="label" for="text">... or this text:</label>
-              </p>
-              <textarea type="textarea" id="text" class="textarea" name="text" rows="8" cols="80"
-                placeholder="The report to be summarized goes here" autocomplete="off"
-                wrap=1>{% if text %}{{ text }}{% endif %}</textarea>
-            </div>
-            <div class="field">
-              <label class="label" for="model">Model:</label>
-              <div class="control">
-                <div class="select">
-                  <select id="model" name="model">
-                    <option value="gpt-4o-mini">gpt-4o-mini</option>
-                    <option value="gpt-5.4-mini" selected>gpt-5.4-mini</option>
-                    <option value="gpt-5.5" selected>gpt-5.5</option>
-                  </select>
+          </div>
+
+          <div class="input-area">
+            <div id="file-pane" class="input-pane">
+              <div class="input-card">
+                <div class="file-box">
+                  <label for="pdffile">Upload report</label>
+                  <input type="file" id="pdffile" name="pdffile" accept="application/pdf">
                 </div>
               </div>
             </div>
-            <div class="field">
-              <label class="label" for="token_count">Summarize in (100-8192) tokens (approx. 30-2700 words):</label>
-              <div class="control">
-                <input id="token_count" name="token_count" class="slider" step="10" min="100" max="8192" value="4096" type="range">
+
+            <div id="url-pane" class="input-pane">
+              <div class="input-card">
+                <div class="field">
+                  <label for="url">Report URL</label>
+                  <input type="url" id="url" name="url" placeholder="https://example.org/report"
+                    value="{% if url %}{{ url }}{% endif %}">
+                </div>
               </div>
-              <div id="token_count_value">4096</div>
             </div>
-            <div>
-              <input type="submit" id="submit_button" value="Generate summary" disabled />
+            <div id="text-pane" class="input-pane">
+              <div class="input-card">
+                <div class="field">
+                  <label for="text">Report text</label>
+                  <textarea id="text" name="text" placeholder="Paste the CTI report text here">{% if text %}{{ text }}{% endif %}</textarea>
+                </div>
+              </div>
             </div>
-        </form>
-      </div>
-      <div> <!-- answer-->
-        <p />&nbsp;
-        <p />
-        {% if result %}
-        {% if success %}
-        <article class="message is-success">
-          {% else %}
-          <article class="message is-danger">
-            {% endif %}
-            <div class="message-header" style="position: relative;">
-              <p>Results:</p>
-              <button class="button is-small copy-button"
-                style="position: absolute; top: 5px; right: 5px; font-style: italic; color: #fff;"
-                onclick="copyToClipboard()">
-                <i class="far fa-copy"></i>&nbsp;Copy to clipboard
-              </button>
-            </div>
-            <div class="message-body markdown" style="position: relative;">
-              {{ result|safe }}
-              <!-- <button class="fa fa-clipboard button copy-button is-small is-pulled-right" aria-hidden="false" onclick="copyToClipboard()"></button> -->
-            </div>
-          </article>
-          {% endif %}
-          {% if metainfo %}
-          <div class="metainfo">{{ metainfo }}</div>
-          {% endif %}
-          <p />&nbsp;
-          <p />
-      </div> 
-    </section>
-    <section>  <!-- footer section -->
-      <footer class="footer">
-        <div class="container is-fluid">
-          <div class="content has-text-centered">
-            <font size="-1">Version: 0.6. Copyright 2023-2026 (C) by EC-DIGIT-CSOC. All rights reserved.<a
-                href="mailto:kaplan@lo-res.org">E-mail</a>.<p></p>
-              <p class="font-size-8">Made with <font color="red">❤</font> in Vienna</p>
-            </font>
           </div>
-        </div>
-      </footer>
-    </section>
-  </main>
+          <div class="checks">
+            <label>
+              <input type="checkbox" id="accepted_need_to_fact_check" name="accepted_need_to_fact_check">
+              <span>I know that I need to fact-check the generated report.</span>
+            </label>
+          </div>
+
+          <div class="submit-row">
+            <button class="submit-button" type="submit" id="submit_button" disabled>
+              <span class="spinner" aria-hidden="true"></span>
+              <span class="submit-label">Generate summary</span>
+            </button>
+          </div>
+        </form>
+
+        {% if result %}
+        <article class="result-card {% if not success %}error{% endif %}">
+          <div class="result-header">
+            <span>Results</span>
+            <button class="copy-button" type="button" onclick="copyToClipboard()">Copy to clipboard</button>
+          </div>
+          <div class="result-body markdown">
+            {{ result|safe }}
+          </div>
+        </article>
+        {% endif %}
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <span>Version {{ version }}</span>
+        <a href="{{ repo_url }}">GitHub repository</a>
+        <a href="/docs">API docs</a>
+        <a href="{{ repo_url }}/blob/main/LICENSE.txt">LICENSE</a>
+        <span>Made with <span class="heart">❤</span> in Vienna and Brussels</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const modelsBySensitivity = {
+      PA: [
+        ["gpt-5.5", "GPT-5.5"],
+        ["gpt-5.4-mini", "GPT-5.4-mini"]
+      ],
+      CU: [
+        ["gpt-5.4", "GPT-5.4 (GPT@EC CU mode)"]
+      ],
+      SNC: [
+        ["gpt-oss:120b", "gpt-oss:120b (GPT@EC SNC mode)"],
+        ["glm-5.1", "GLM-5.1 (AI-Lab SNC)"],
+        ["qwen3.6", "qwen3.6 (AI-Lab SNC)"],
+        ["gemma4:latest", "gemma4:latest (AI-Lab SNC)"],
+        ["deepseek-v4-flash", "DeepSeek V4 Flash (AI-Lab SNC)"]
+      ]
+    };
+
+    function updateModelOptions() {
+      const sensitivity = document.getElementById("sensitivity").value;
+      const modelSelect = document.getElementById("model");
+      const selectedModel = modelSelect.dataset.selectedModel;
+      const models = modelsBySensitivity[sensitivity] || modelsBySensitivity.CU;
+
+      modelSelect.innerHTML = "";
+      models.forEach(([value, label]) => {
+        const option = document.createElement("option");
+        option.value = value;
+        option.textContent = label;
+        option.selected = value === selectedModel;
+        modelSelect.appendChild(option);
+      });
+
+      if (!modelSelect.value && models.length) {
+        modelSelect.value = models[0][0];
+      }
+    }
+
+    function updateInputMode() {
+      const mode = document.getElementById("input-mode").value;
+      ["file", "url", "text"].forEach((item) => {
+        const pane = document.getElementById(item + "-pane");
+        const active = item === mode;
+        pane.classList.toggle("is-active", active);
+        pane.querySelectorAll("input, textarea, select").forEach((field) => {
+          field.disabled = !active;
+        });
+      });
+    }
+
+    function updateSubmitState() {
+      const accepted = ["accepted_need_to_fact_check"]
+        .every((id) => document.getElementById(id).checked);
+      document.getElementById("submit_button").disabled = !accepted;
+    }
+
+    function showSubmitSpinner() {
+      const submitButton = document.getElementById("submit_button");
+      submitButton.classList.add("is-loading");
+      submitButton.querySelector(".submit-label").textContent = "Generating...";
+    }
+
+    function copyToClipboard() {
+      const resultBody = document.querySelector(".result-body");
+      if (!resultBody) return;
+      const range = document.createRange();
+      range.selectNode(resultBody);
+      window.getSelection().removeAllRanges();
+      window.getSelection().addRange(range);
+      document.execCommand("copy");
+      window.getSelection().removeAllRanges();
+    }
+
+    document.getElementById("sensitivity").addEventListener("change", updateModelOptions);
+    document.getElementById("input-mode").addEventListener("change", updateInputMode);
+    document.querySelector("form").addEventListener("submit", showSubmitSpinner);
+    ["accepted_need_to_fact_check"].forEach((id) => {
+      document.getElementById(id).addEventListener("change", updateSubmitState);
+    });
+
+    updateModelOptions();
+    updateInputMode();
+    updateSubmitState();
+  </script>
 </body>
-<script>
-  const tokenCountSlider = document.getElementById("token_count");
-  const tokenCountValue = document.getElementById("token_count_value");
-  tokenCountSlider.oninput = function () {
-    tokenCountValue.innerHTML = this.value;
-  }
-
-  // copy & paste code
-  function copyToClipboard() {
-    const messageBody = document.querySelector('.message-body');
-    const range = document.createRange();
-    range.selectNode(messageBody);
-    window.getSelection().addRange(range);
-    document.execCommand('copy');
-    window.getSelection().removeAllRanges();
-  }
-
-  // for the info icon
-  const infoIcon = document.querySelector('.icon');
-  const tooltip = document.querySelector('.tooltip');
-
-  infoIcon.addEventListener('mouseenter', () => {
-    tooltip.classList.add('is-active');
-  });
-
-  infoIcon.addEventListener('mouseleave', () => {
-    tooltip.classList.remove('is-active');
-  });
-</script>
-
 </html>

@@ -5,7 +5,6 @@ import os
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-
 security = HTTPBasic()
 
 # fake users to simulate authentication

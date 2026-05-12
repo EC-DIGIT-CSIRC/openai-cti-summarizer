@@ -36,20 +36,26 @@ services:
       args:
         - VERSION=${VERSION}
     environment:
-      PYTHON_PATH: /app
+      PYTHONPATH: /app
     env_file: .env
     ports:
       - "9001:9999"
     dns: 8.8.8.8
     # network_mode: host
     volumes:
-      - ./app:/app
+      - ./app:/app/app
+      - ./templates:/app/templates
+      - ./static:/app/static
+      - ./VERSION.txt:/app/VERSION.txt:ro
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.openai-summarizer.rule=Host(`cti-summariser-dev.csirc.eu`)"
-      - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
-      - "traefik.http.routers.openai-summarizer.tls.certresolver=myresolver"
+      - "traefik.http.routers.openai-summarizer.rule=Host(`${SERVERNAME}`)"
+      # Set TRAEFIK_TLS_CERT_RESOLVER=le for Let's Encrypt, or leave it empty
+      # to use a certificate configured directly on Traefik, such as a local CA cert.
+      - "traefik.http.routers.openai-summarizer.tls.certresolver=${TRAEFIK_TLS_CERT_RESOLVER-le}"
+      - "traefik.http.routers.openai-summarizer.tls=true"
       - "traefik.http.services.openai-summarizer.loadbalancer.server.port=9999"
+      - "traefik.http.routers.openai-summarizer.entrypoints=websecure"
     networks:
       - web
 

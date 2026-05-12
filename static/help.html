@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CTI Extractor Help</title>
+  <link rel="shortcut icon" href="/static/quote-150x150.png">
+  <style>
+    :root {
+      --ec-blue: #1c1c45;
+      --ec-link: #0046ff;
+      --ec-link-dark: #0035bf;
+      --surface: #fbfbfb;
+      --surface-soft: #f6f6f8;
+      --border: #d4d4dc;
+      --text: #00002e;
+      --muted: #505070;
+      --warning: #7a4b00;
+      --warning-bg: #fff7e6;
+      --content-width: min(100%, 940px);
+      --shadow: 0 18px 48px rgba(0, 0, 46, .10);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      color: var(--text);
+      background:
+        linear-gradient(to bottom, rgba(251, 251, 251, .97), rgba(251, 251, 251, .92)),
+        url("/static/background-wave.png") bottom center / 100% auto no-repeat,
+        var(--surface);
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.55;
+    }
+
+    a {
+      color: var(--ec-link);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 300px minmax(0, 1fr);
+      grid-template-rows: 78px minmax(0, 1fr) auto;
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      min-height: 78px;
+      padding: 0 32px;
+      color: #fff;
+      background: var(--ec-blue);
+    }
+
+    .brand,
+    .sidebar-links,
+    .footer-content {
+      display: flex;
+      align-items: center;
+    }
+
+    .brand {
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .brand-logo {
+      width: 70px;
+      height: 54px;
+      border: 0;
+      background: #039;
+    }
+
+    .brand-name {
+      font-size: clamp(1.7rem, 2.3vw, 2.4rem);
+      line-height: 1;
+      white-space: nowrap;
+      letter-spacing: 0;
+    }
+
+    .sidebar {
+      grid-row: 2 / 4;
+      padding: 30px 24px;
+      border-right: 1px solid #e1e1e7;
+      background: rgba(255, 255, 255, .78);
+      backdrop-filter: blur(4px);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .new-chat {
+      color: var(--ec-link-dark);
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .sidebar-links {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 18px;
+      font-size: 1.08rem;
+    }
+
+    .sidebar-links a {
+      color: #303050;
+      font-weight: 700;
+    }
+
+    .sidebar-links a[aria-current="page"] {
+      color: var(--ec-link-dark);
+    }
+
+    .main {
+      grid-column: 2;
+      padding: 36px 40px 28px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .content {
+      width: var(--content-width);
+    }
+
+    .hero {
+      display: grid;
+      justify-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .hero-logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      opacity: .95;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3.8vw, 3rem);
+      line-height: 1;
+      letter-spacing: 0;
+    }
+
+    .lede {
+      max-width: 720px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .panel {
+      margin-top: 18px;
+      padding: 30px 34px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .93);
+      box-shadow: var(--shadow);
+    }
+
+    .panel:first-of-type {
+      margin-top: 0;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 1.35rem;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 1.05rem;
+    }
+
+    p {
+      margin: 0 0 14px;
+    }
+
+    ol,
+    ul {
+      margin: 0;
+      padding-left: 22px;
+    }
+
+    li + li {
+      margin-top: 10px;
+    }
+
+    .callout {
+      margin: 18px 0 0;
+      padding: 14px 16px;
+      border: 1px solid #f0d08a;
+      border-radius: 8px;
+      color: var(--warning);
+      background: var(--warning-bg);
+      font-weight: 700;
+    }
+
+    .footer {
+      grid-column: 2;
+      padding: 18px 40px 26px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .footer-content {
+      width: min(100%, 980px);
+      margin: 0 auto;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 14px 20px;
+      text-align: center;
+    }
+
+    .heart {
+      color: #b00020;
+      font-weight: 700;
+    }
+
+    @media (max-width: 980px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+      }
+
+      .topbar {
+        padding: 14px 18px;
+        flex-wrap: wrap;
+      }
+
+      .brand-name {
+        font-size: 1.8rem;
+      }
+
+      .sidebar {
+        grid-row: auto;
+        border-right: 0;
+        border-bottom: 1px solid #e1e1e7;
+        padding: 18px;
+      }
+
+      .sidebar-links {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .main,
+      .footer {
+        grid-column: 1;
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .brand-logo {
+        width: 58px;
+        height: 44px;
+      }
+
+      .brand-name {
+        font-size: 1.45rem;
+      }
+
+      .panel {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <svg class="brand-logo" viewBox="0 0 900 600" preserveAspectRatio="xMidYMid meet" role="img" aria-label="European Union">
+          <rect width="900" height="600" fill="#039"></rect>
+          <g fill="#fc0" transform="translate(450 300)">
+            <path id="eu-star" d="M0,162.5 22.041947,230.338137 -35.664619,188.411863H35.664619L-22.041947,230.338137z"></path>
+            <use href="#eu-star" y="-400"></use>
+            <g id="eu-star-five">
+              <use href="#eu-star" transform="rotate(30) rotate(-30,0,200)"></use>
+              <use href="#eu-star" transform="rotate(60) rotate(-60,0,200)"></use>
+              <use href="#eu-star" transform="rotate(90) rotate(-90,0,200)"></use>
+              <use href="#eu-star" transform="rotate(120) rotate(-120,0,200)"></use>
+              <use href="#eu-star" transform="rotate(150) rotate(-150,0,200)"></use>
+            </g>
+            <use href="#eu-star-five" transform="scale(-1,1)"></use>
+          </g>
+        </svg>
+        <div class="brand-name">DIGIT S2 CSOC (SOCET)</div>
+      </div>
+    </header>
+
+    <aside class="sidebar">
+      <a class="new-chat" href="/">+ New chat</a>
+      <nav class="sidebar-links" aria-label="Secondary navigation">
+        <a href="/static/help.html" aria-current="page">Help</a>
+        <a href="https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer">About</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <article class="content">
+        <section class="hero" aria-labelledby="page-title">
+          <img class="hero-logo" src="/static/quote-150x150.png" alt="">
+          <h1 id="page-title">CTI Extractor Help</h1>
+          <p class="lede">Use this service to turn a CTI report from text, a URL, or a PDF into a structured summary that can be reviewed as rendered markdown or returned as JSON.</p>
+        </section>
+
+        <section class="panel" aria-labelledby="how-to-use">
+          <h2 id="how-to-use">How To Use The Service</h2>
+          <ol>
+            <li>Select the sensitivity level for the data you are submitting. Use <strong>PA</strong> only for public data.</li>
+            <li>Select the model that matches the sensitivity and environment you are allowed to use.</li>
+            <li>Choose one report input mode: upload a PDF, fetch a report URL, or paste report text directly.</li>
+            <li>Read and accept the handling and review checkboxes below the input area.</li>
+            <li>Submit the report and wait for the generated CTI summary.</li>
+            <li>Review the output before using it in any operational or reporting workflow.</li>
+          </ol>
+
+          <h3>Input Modes</h3>
+          <ul>
+            <li><strong>File upload:</strong> Upload a PDF CTI report. The service extracts the text and sends it for summarization.</li>
+            <li><strong>Fetch from URL:</strong> Provide a direct URL to an HTML, text, or PDF report that the service can access.</li>
+            <li><strong>Copy and paste:</strong> Paste report text directly when the source is not available as a file or URL.</li>
+          </ul>
+        </section>
+
+        <section class="panel" aria-labelledby="output">
+          <h2 id="output">Output</h2>
+          <p>The service asks the configured LLM provider to return a structured CTI summary using the application schema. When JSON output is enabled in the service configuration, the API response is the JSON object from the summarization flow. Otherwise, the result is rendered as markdown on the page.</p>
+          <p>Typical sections include the executive summary, key points, TTPs, indicators, threat actors, confidence, report metadata, and any generated YARA rules.</p>
+        </section>
+
+        <section class="panel" id="limitations" aria-labelledby="limitations-title">
+          <h2 id="limitations-title">Limitations</h2>
+          <p class="callout">A human must check the generated output before it is trusted or shared.</p>
+          <ul>
+            <li>OpenAI or the configured LLM provider may process submitted data through its API. Select <strong>PA</strong> only for public data. Do not select <strong>PA</strong> for CU or SNC data.</li>
+            <li>The model may miss important details or context that a human analyst would recognize as relevant.</li>
+            <li>The model may generate summaries that are factually incorrect or misleading.</li>
+            <li>The model may struggle with complex, technical, ambiguous, or poorly extracted report text.</li>
+            <li>The model may generate summaries that are too brief, too long, or unevenly detailed.</li>
+            <li>The model may occasionally produce unsafe instructions or biased content.</li>
+            <li>The model may have limited knowledge of events, actors, tools, or vulnerabilities after its training cutoff unless those details are present in the submitted report.</li>
+          </ul>
+        </section>
+      </article>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-content">
+        <a href="/">CTI Extractor</a>
+        <a href="/docs">API docs</a>
+        <a href="https://github.com/EC-DIGIT-CSIRC/openai-cti-summarizer/blob/main/LICENSE.txt">LICENSE</a>
+        <span>Made with <span class="heart">❤</span> in Vienna and Brussels</span>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>

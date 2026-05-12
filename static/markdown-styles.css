@@ -77,6 +77,66 @@
   margin-bottom: 1.25rem;
 }
 
+.markdown table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 1.25rem 0 1.75rem;
+  table-layout: auto;
+  border: 1px solid #cfd9e8;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+}
+
+.markdown th,
+.markdown td {
+  padding: 1rem 1.6rem;
+  border-bottom: 1px solid #e3eaf4;
+  border-right: 1px solid #dde6f2;
+  text-align: left;
+  vertical-align: top;
+}
+
+.markdown th:first-child,
+.markdown td:first-child {
+  min-width: 9rem;
+}
+
+.markdown th + th,
+.markdown td + td {
+  padding-left: 2rem;
+}
+
+.markdown th:last-child,
+.markdown td:last-child {
+  border-right: none;
+}
+
+.markdown th {
+  background: #e8eff8;
+  color: #111827;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.markdown tbody tr:nth-child(even) {
+  background: #f7f9fc;
+}
+
+.markdown tbody tr:hover {
+  background: #eef5ff;
+}
+
+.markdown tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown td {
+  overflow-wrap: anywhere;
+}
+
 .markdown img {
   max-width: 100%;
   height: auto;
@@ -95,4 +155,3 @@
   color: #363636;
   text-decoration: underline;
 }
-

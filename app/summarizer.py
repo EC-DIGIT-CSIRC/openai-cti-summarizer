@@ -1,117 +1,353 @@
-"""The summarizer class, abstracting away the LLM."""
-import os
-from typing import Tuple
+"""CTI summarization via Pydantic AI."""
 
-import openai
-from openai import AzureOpenAI
+from __future__ import annotations
 
-from settings import log            # pylint: ignore=import-error
+import time
+from dataclasses import dataclass
+from typing import Any, Callable
 
-# first get the env parametting
-from dotenv import load_dotenv, find_dotenv
-_ = load_dotenv(find_dotenv())      # read local .env file
+from pydantic import ValidationError
+
+from .config import LangSmithSettings, LLMOutputMode, LLMProvider, LLMSettings
+from .rendering import YARA_AI_VALIDATION_NOTE, YARA_AUTHOR
+from .schema import CTISummary
+from .settings import log
+from .tracing import TraceContext, run_with_langsmith_trace
 
 
-class Summarizer:
-    """Wrapper to summarize texts via OpenAI or MS Azure's OpenAI."""
+class SummarizationError(Exception):
+    """Base class for summarization failures."""
 
-    client: openai._base_client.BaseClient
 
-    def __init__(self, model: str, max_tokens: int = 264000, system_prompt: str = "", go_azure: bool = False, output_json: bool = False):
-        if system_prompt:
-            self.system_prompt = system_prompt
-        else:
-            self.system_prompt = "You are a Cyber Threat Intelligence Analyst and need to summarise a report for upper management. The report shall be nicely formatted with two sections: one Executive Summary section and one 'TTPs and IoCs' section. The second section shall list all IP addresses, domains, URLs, tools and hashes (sha-1, sha256, md5, etc.) which can be found in the report. Nicely format the report as markdown. Use newlines between markdown headings."
-        self.model = model
-        self.max_tokens = max_tokens
-        self.go_azure = go_azure
-        self.output_json = output_json
+class LLMConfigurationError(SummarizationError):
+    """The configured provider/model cannot be constructed."""
 
-        if self.go_azure:
-            api_version = os.environ['OPENAI_API_VERSION']
-            azure_endpoint = os.environ['OPENAI_API_BASE']
-            azure_deployment = os.environ['ENGINE']
-            api_key = os.environ['AZURE_OPENAI_API_KEY']
-            log.debug(f"""
-                {api_version=},
-                {azure_endpoint=},
-                {azure_deployment=},
-                {api_key=}
-            """)
-            self.client = AzureOpenAI(api_version=os.environ['OPENAI_API_VERSION'],
-                                      azure_endpoint=os.environ['OPENAI_API_BASE'],
-                                      azure_deployment=os.environ['ENGINE'],
-                                      api_key=os.environ['AZURE_OPENAI_API_KEY'])
 
-            # TODO: The 'openai.api_base' option isn't read in the client API. You will need to pass it when you instantiate the client, e.g. 'OpenAI(api_base=os.environ['OPENAI_API_BASE'])'
-            # openai.api_base = os.environ['OPENAI_API_BASE']             # Your Azure OpenAI resource's endpoint value.
-            # "2023-05-15"
+class LLMProviderError(SummarizationError):
+    """The provider request failed."""
 
-            """
-            openai.api_type = os.environ['OPENAI_API_TYPE']
-            openai.api_base = os.environ['OPENAI_API_BASE']             # "https://devmartiopenai.openai.azure.com/"
-            openai.api_version = os.environ['OPENAI_API_VERSION']       # "2023-05-15"
-            """
-            log.info(f"Using Azure client {self.client._version}")
-        else:
-            self.client = openai.OpenAI(api_key=os.environ['OPENAI_API_KEY'])
 
-    def summarize(self, text: str, system_prompt: str = "") -> Tuple[str, str]:
-        """Send <text> to openAI and get a summary back.
-        Returns a tuple: error, message. Note that either error or message may be None.
-        """
-        if not system_prompt:
-            system_prompt = self.system_prompt
-        messages = [
-            {"role": "system", "content": system_prompt},      # single shot
-            {"role": "user", "content": text}
-        ]
+class LLMOutputValidationError(SummarizationError):
+    """The provider returned output that did not validate as CTISummary."""
+
+
+@dataclass(frozen=True)
+class SummarizationResult:
+    """Successful summarization result plus operational metadata."""
+
+    summary: CTISummary
+    duration_ms: int
+    usage: Any | None = None
+    provider: str = ""
+    model: str = ""
+    output_mode: str = ""
+
+
+AgentFactory = Callable[[Any, Any, dict[str, Any]], Any]
+
+
+def _is_gpt_5_5_model(model: str) -> bool:
+    normalized = model.rsplit("/", maxsplit=1)[-1].lower()
+    return normalized == "gpt-5.5" or normalized.startswith("gpt-5.5-")
+
+
+def _uses_openai_responses_verbosity(settings: LLMSettings) -> bool:
+    openai_responses_provider = settings.provider in {LLMProvider.OPENAI, LLMProvider.AZURE}
+    return openai_responses_provider and _is_gpt_5_5_model(settings.model)
+
+
+def _secret_value(value: Any | None) -> str | None:
+    if value is None:
+        return None
+    if hasattr(value, "get_secret_value"):
+        return value.get_secret_value()
+    return str(value)
+
+
+def _build_pydantic_ai_model(settings: LLMSettings) -> Any:
+    """Build a Pydantic AI model or model string from settings."""
+    try:
+        if settings.provider == LLMProvider.OPENAI:
+            if _is_gpt_5_5_model(settings.model):
+                from pydantic_ai.models.openai import OpenAIResponsesModel
+                from pydantic_ai.providers.openai import OpenAIProvider
+
+                provider = OpenAIProvider(
+                    api_key=_secret_value(settings.api_key),
+                    base_url=settings.base_url,
+                )
+                return OpenAIResponsesModel(settings.model, provider=provider)
+            if settings.api_key or settings.base_url:
+                from pydantic_ai.models.openai import OpenAIChatModel
+                from pydantic_ai.providers.openai import OpenAIProvider
+
+                provider = OpenAIProvider(
+                    api_key=_secret_value(settings.api_key),
+                    base_url=settings.base_url,
+                )
+                return OpenAIChatModel(settings.model, provider=provider)
+            return f"openai:{settings.model}"
+
+        if settings.provider == LLMProvider.AZURE:
+            from pydantic_ai.models.openai import OpenAIChatModel, OpenAIResponsesModel
+            from pydantic_ai.providers.azure import AzureProvider
+
+            provider = AzureProvider(
+                azure_endpoint=settings.azure_endpoint,
+                api_key=_secret_value(settings.azure_api_key),
+                api_version=settings.azure_api_version,
+            )
+            if _is_gpt_5_5_model(settings.model):
+                return OpenAIResponsesModel(settings.model, provider=provider)
+            return OpenAIChatModel(settings.model, provider=provider)
+
+        if settings.provider == LLMProvider.OPENROUTER:
+            if settings.api_key:
+                from pydantic_ai.models.openrouter import OpenRouterModel
+                from pydantic_ai.providers.openrouter import OpenRouterProvider
+
+                return OpenRouterModel(
+                    settings.model,
+                    provider=OpenRouterProvider(api_key=_secret_value(settings.api_key)),
+                )
+            return f"openrouter:{settings.model}"
+
+        if settings.provider == LLMProvider.OLLAMA:
+            if settings.base_url or settings.api_key:
+                from pydantic_ai.models.ollama import OllamaModel
+                from pydantic_ai.providers.ollama import OllamaProvider
+
+                return OllamaModel(
+                    settings.model,
+                    provider=OllamaProvider(
+                        base_url=settings.base_url,
+                        api_key=_secret_value(settings.api_key),
+                    ),
+                )
+            return f"ollama:{settings.model}"
+
+        if settings.provider == LLMProvider.ANTHROPIC:
+            if settings.api_key:
+                from pydantic_ai.models.anthropic import AnthropicModel
+                from pydantic_ai.providers.anthropic import AnthropicProvider
+
+                return AnthropicModel(
+                    settings.model,
+                    provider=AnthropicProvider(api_key=_secret_value(settings.api_key)),
+                )
+            return f"anthropic:{settings.model}"
+    except ImportError as exc:
+        raise LLMConfigurationError(
+            "Pydantic AI provider dependencies are not installed. Run `uv sync`."
+        ) from exc
+    except Exception as exc:
+        raise LLMConfigurationError(f"Failed to configure LLM provider: {exc}") from exc
+
+    raise LLMConfigurationError(f"Unsupported LLM provider: {settings.provider}")
+
+
+def _structured_output_type(mode: LLMOutputMode) -> Any:
+    try:
+        if mode == LLMOutputMode.NATIVE:
+            from pydantic_ai import NativeOutput
+
+            return NativeOutput(CTISummary)
+        if mode == LLMOutputMode.TOOL:
+            from pydantic_ai import ToolOutput
+
+            return ToolOutput(CTISummary)
+        if mode == LLMOutputMode.PROMPTED:
+            from pydantic_ai import PromptedOutput
+
+            return PromptedOutput(CTISummary)
+    except ImportError as exc:
+        raise LLMConfigurationError(
+            "Pydantic AI is not installed. Run `uv sync`."
+        ) from exc
+
+    raise LLMConfigurationError(f"Unsupported output mode: {mode}")
+
+
+def _default_agent_factory(model: Any, output_type: Any, agent_kwargs: dict[str, Any]) -> Any:
+    try:
+        from pydantic_ai import Agent
+    except ImportError as exc:
+        raise LLMConfigurationError("Pydantic AI is not installed. Run `uv sync`.") from exc
+
+    return Agent(model, output_type=output_type, **agent_kwargs)
+
+
+def _build_grounding_instruction(limit: int) -> str:
+    hints = CTISummary.grounding_hints(limit=limit)
+    lines: list[str] = []
+
+    if hints["ttps"]:
+        lines.append("Prefer these MITRE ATT&CK values when they match the report:")
+        lines.extend(f"- {value}" for value in hints["ttps"])
+
+    if hints["threat_actors"]:
+        if lines:
+            lines.append("")
+        lines.append("Prefer these Malpedia threat actor names when they match the report:")
+        lines.extend(f"- {value}" for value in hints["threat_actors"])
+
+    return "\n".join(lines)
+
+
+def _usage_attr(usage: Any, *names: str) -> Any:
+    for name in names:
+        if hasattr(usage, name):
+            return getattr(usage, name)
+    return None
+
+
+class CTISummarizer:
+    """CTI-specific summarizer over Pydantic AI Agent."""
+
+    def __init__(
+        self,
+        settings: LLMSettings,
+        *,
+        agent_factory: AgentFactory | None = None,
+        model_factory: Callable[[LLMSettings], Any] = _build_pydantic_ai_model,
+        langsmith_settings: LangSmithSettings | None = None,
+        trace_context: TraceContext | None = None,
+    ) -> None:
+        self.settings = settings
+        self._agent_factory = agent_factory or _default_agent_factory
+        self._model_factory = model_factory
+        self.langsmith_settings = langsmith_settings or LangSmithSettings(tracing=False)
+        self.trace_context = trace_context or TraceContext()
+
+    async def summarize(self, text: str, system_prompt: str | None = None) -> SummarizationResult:
+        """Summarize report text into a validated CTISummary."""
+        if not text or not text.strip():
+            raise LLMOutputValidationError("Report text is empty.")
 
         try:
-            if self.go_azure:
-                log.info("Using MS AZURE!")
-                response = self.client.chat.completions.create(model=os.environ['ENGINE'],
-                                                               messages=messages,
-                                                               # temperature=0.3,
-                                                               # top_p=0.95,
-                                                               stop=None,
-                                                               # max_tokens=self.max_tokens,
-                                                               n=1)
-            else:       # go directly via OpenAI's API
-                log.info("Using OpenAI directly!")
-                if self.output_json:
-                    response_format = {"type": "json_object"}
-                else:
-                    response_format = None
-                response = self.client.chat.completions.create(model=self.model,
-                                                               messages=messages,
-                                                               # temperature=0.3,
-                                                               # top_p=0.95,
-                                                               stop=None,
-                                                               # max_tokens=self.max_tokens,
-                                                               response_format=response_format,
-                                                               n=1)
+            return await self._run_once(text, system_prompt, self.settings.output_mode)
+        except LLMProviderError:
+            if not self.settings.allow_output_fallback:
+                raise
+            log.warning(
+                "cti_summary_retrying_with_output_fallback",
+                extra={
+                    "provider": self.settings.provider.value,
+                    "model": self.settings.model,
+                    "from_output_mode": self.settings.output_mode.value,
+                    "to_output_mode": self.settings.output_fallback_mode.value,
+                },
+            )
+            return await self._run_once(text, system_prompt, self.settings.output_fallback_mode)
 
-            log.debug(f"Full Response (OpenAI): {response}")
-            log.debug(f"response.choices[0].text: {response.choices[0].message}")
-            log.debug(response.model_dump_json(indent=2))
-            result = response.choices[0].message.content
-            error = None            # Or move the error handling back to main.py, not sure
-        except openai.APIConnectionError as e:
-            result = None
-            error = f"The server could not be reached. Reason {e.__cause__}"
-            log.error(error)
-        except openai.RateLimitError as e:
-            result = None
-            error = f"A 429 status code was received; we should back off a bit. {str(e)}"
-            log.error(error)
-        except openai.APIStatusError as e:
-            result = None
-            error = f"Another non-200-range status code was received. Status code: {e.status_code}. \n\nResponse: {e.message}"
-            log.error(error)
-        except Exception as e:
-            result = None
-            error = f"Unknown error! Error = '{str(e)}'"
-            log.error(error)
+    async def _run_once(
+        self,
+        text: str,
+        system_prompt: str | None,
+        output_mode: LLMOutputMode,
+    ) -> SummarizationResult:
+        instructions = self._build_instructions(system_prompt)
+        try:
+            model = self._model_factory(self.settings)
+            output_type = _structured_output_type(output_mode)
+            agent = self._agent_factory(
+                model,
+                output_type,
+                {"instructions": instructions},
+            )
+        except LLMConfigurationError:
+            raise
+        except Exception as exc:
+            raise LLMProviderError(f"LLM request failed: {exc}") from exc
+        model_settings = {
+            "timeout": self.settings.timeout_seconds,
+        }
+        if _uses_openai_responses_verbosity(self.settings):
+            model_settings["openai_text_verbosity"] = "low"
 
-        return result, error        # type: ignore
+        started = time.perf_counter()
+        result = await run_with_langsmith_trace(
+            self.langsmith_settings,
+            self.trace_context,
+            report_text=text,
+            provider=self.settings.provider.value,
+            model=self.settings.model,
+            output_mode=output_mode.value,
+            operation=lambda: self._run_agent_with_retries(agent, text, model_settings),
+        )
+
+        duration_ms = int((time.perf_counter() - started) * 1000)
+        summary = result.output
+        if not isinstance(summary, CTISummary):
+            try:
+                summary = CTISummary.model_validate(summary)
+            except ValidationError as exc:
+                raise LLMOutputValidationError(
+                    f"LLM output failed schema validation: {exc}"
+                ) from exc
+
+        usage = result.usage() if hasattr(result, "usage") else None
+        self._log_success(duration_ms, usage, output_mode)
+        return SummarizationResult(
+            summary=summary,
+            duration_ms=duration_ms,
+            usage=usage,
+            provider=self.settings.provider.value,
+            model=self.settings.model,
+            output_mode=output_mode.value,
+        )
+
+    async def _run_agent_with_retries(
+        self,
+        agent: Any,
+        text: str,
+        model_settings: dict[str, Any],
+    ) -> Any:
+        for attempt in range(self.settings.max_retries + 1):
+            try:
+                return await agent.run(text, model_settings=model_settings)
+            except ValidationError as exc:
+                raise LLMOutputValidationError(f"LLM output failed schema validation: {exc}") from exc
+            except Exception as exc:
+                if attempt >= self.settings.max_retries:
+                    raise LLMProviderError(f"LLM request failed: {exc}") from exc
+                log.warning(
+                    "cti_summary_retrying_after_provider_error",
+                    extra={
+                        "provider": self.settings.provider.value,
+                        "model": self.settings.model,
+                        "attempt": attempt + 1,
+                        "max_retries": self.settings.max_retries,
+                    },
+                )
+
+        raise LLMProviderError("LLM request failed after retries.")
+
+    def _build_instructions(self, system_prompt: str | None) -> str:
+        base_prompt = system_prompt.strip() if system_prompt else ""
+        grounding = _build_grounding_instruction(self.settings.prompt_grounding_hint_limit)
+        guardrails = (
+            "Return only facts supported by the report. Use empty lists when a section is not "
+            "supported. Keep yara_rules empty unless the report contains enough concrete "
+            "strings, conditions, and context to support useful candidate rules. If you propose "
+            "any YARA rule, its meta section must include "
+            f'author = "{YARA_AUTHOR}" and '
+            f'ai_generated_note = "{YARA_AI_VALIDATION_NOTE}"'
+        )
+        return "\n\n".join(part for part in (base_prompt, grounding, guardrails) if part)
+
+    def _log_success(self, duration_ms: int, usage: Any | None, output_mode: LLMOutputMode) -> None:
+        log.info(
+            "cti_summary_completed",
+            extra={
+                "provider": self.settings.provider.value,
+                "model": self.settings.model,
+                "output_mode": output_mode.value,
+                "duration_ms": duration_ms,
+                "usage_available": usage is not None,
+                "request_tokens": _usage_attr(usage, "input_tokens", "request_tokens") if usage else None,
+                "response_tokens": _usage_attr(usage, "output_tokens", "response_tokens") if usage else None,
+                "total_tokens": _usage_attr(usage, "total_tokens") if usage else None,
+                "requests": _usage_attr(usage, "requests") if usage else None,
+            },
+        )
