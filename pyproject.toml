@@ -18,6 +18,7 @@ dependencies = [
     "pymupdf",
     "python-dotenv",
     "python-multipart",
+    "redis==7.4.0",
     "requests",
     "starlette",
     "uvicorn",

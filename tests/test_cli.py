@@ -81,7 +81,7 @@ def test_cli_outputs_markdown(monkeypatch):
     assert result.exit_code == 0
     assert "## Executive Summary" in result.output
     assert "CLI APT28 repo" in result.output
-    assert "CLI prompt" in result.output
+    assert "## Report Metadata" in result.output
 
 
 def test_cli_outputs_json(monkeypatch):

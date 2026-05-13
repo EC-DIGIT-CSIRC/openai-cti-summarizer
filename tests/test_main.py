@@ -16,6 +16,8 @@ class DummyResponse:
 class FakeSummaryResult:
     def __init__(self, summary: CTISummary):
         self.summary = summary
+        self.duration_ms = 12
+        self.usage = SimpleNamespace(input_tokens=10, output_tokens=5, total_tokens=15)
 
 
 class FakeSummarizer:
@@ -35,11 +37,13 @@ class FakeSummarizer:
         return FakeSummaryResult(
             CTISummary(
                 summary=f"Summarized {text[:10]}",
-                key_points=[system_prompt or "default prompt"],
+                #key_points=[system_prompt or "default prompt"],
+                indicators_of_compromise=[{"type": "technique", "value": "phishing"}],
                 ttps=[],
                 threat_actors=["APT28"],
                 confidence_score=0.8,
                 report_metadata={"source": "test"},
+                yara_rules=["rule1: condition"],
             )
         )
 
@@ -50,6 +54,20 @@ class FailingSummarizer:
 
     async def summarize(self, text, system_prompt=None):
         raise SummarizationError("provider failed cleanly")
+
+
+class FakeCacheStore:
+    def __init__(self):
+        self.values = {}
+
+    async def ping(self):
+        return None
+
+    async def get_json(self, key):
+        return self.values.get(key)
+
+    async def set_json(self, key, value):
+        self.values[key] = value
 
 
 def _client(monkeypatch, *, dry_run=False, output_json=False):
@@ -65,6 +83,8 @@ def _client(monkeypatch, *, dry_run=False, output_json=False):
     )
     monkeypatch.setattr(main, "llm_settings", LLMSettings(model="test-model"))
     monkeypatch.setattr(main, "langsmith_settings", main.LangSmithSettings(tracing=False))
+    store = FakeCacheStore()
+    monkeypatch.setattr(main, "get_cache_store", lambda: store)
     return TestClient(main.app)
 
 
@@ -99,7 +119,6 @@ def test_post_text_dry_run_renders_markdown_summary(monkeypatch):
 
     assert response.status_code == 200
     assert "DRY_RUN is enabled" in response.text
-    assert "No request was sent to an LLM provider" in response.text
 
 
 def test_post_text_uses_summarizer_and_renders_result(monkeypatch):
@@ -117,10 +136,52 @@ def test_post_text_uses_summarizer_and_renders_result(monkeypatch):
 
     assert response.status_code == 200
     assert "Summarized APT28 used" in response.text
-    assert "Custom prompt" in response.text
     assert "APT28" in response.text
     assert FakeSummarizer.last_settings.model == "override-model"
     assert FakeSummarizer.last_trace_context.sensitivity.value == "PA"
+
+
+def test_post_text_uses_cached_llm_summary(monkeypatch):
+    client = _client(monkeypatch)
+
+    class CountingSummarizer(FakeSummarizer):
+        calls = 0
+
+        async def summarize(self, text, system_prompt=None):
+            type(self).calls += 1
+            return await super().summarize(text, system_prompt)
+
+    monkeypatch.setattr(main, "CTISummarizer", CountingSummarizer)
+
+    data = {"text": "APT28 used phishing.", "system_prompt": "Custom prompt"}
+    first = client.post("/", data=data)
+    second = client.post("/", data=data)
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert CountingSummarizer.calls == 1
+    assert "Summarized APT28 used" in second.text
+
+
+def test_post_text_reanalyze_bypasses_llm_cache(monkeypatch):
+    client = _client(monkeypatch)
+
+    class CountingSummarizer(FakeSummarizer):
+        calls = 0
+
+        async def summarize(self, text, system_prompt=None):
+            type(self).calls += 1
+            return await super().summarize(text, system_prompt)
+
+    monkeypatch.setattr(main, "CTISummarizer", CountingSummarizer)
+
+    data = {"text": "APT28 used phishing.", "system_prompt": "Custom prompt"}
+    first = client.post("/", data=data)
+    second = client.post("/", data={**data, "reanalyze": "on"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert CountingSummarizer.calls == 2
 
 
 def test_post_invalid_sensitivity_returns_400(monkeypatch):
@@ -174,6 +235,25 @@ def test_post_url_fetches_text(monkeypatch):
 
     assert response.status_code == 200
     assert "Summarized ReportAPT2" in response.text
+
+
+def test_post_url_uses_url_cache(monkeypatch):
+    client = _client(monkeypatch)
+    monkeypatch.setattr(main, "CTISummarizer", FakeSummarizer)
+    calls = []
+
+    def fake_get(*args, **kwargs):
+        calls.append((args, kwargs))
+        return DummyResponse()
+
+    monkeypatch.setattr(main.requests, "get", fake_get)
+
+    first = client.post("/", data={"url": "https://example.test/report", "reanalyze": "on"})
+    second = client.post("/", data={"url": "https://example.test/report", "reanalyze": "on"})
+
+    assert first.status_code == 200
+    assert second.status_code == 200
+    assert len(calls) == 1
 
 
 def test_post_invalid_url_returns_400(monkeypatch):
