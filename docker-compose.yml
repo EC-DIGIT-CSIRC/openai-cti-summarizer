@@ -51,6 +51,7 @@ services:
       - ./VERSION.txt:/app/VERSION.txt:ro
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=web"
       - "traefik.http.routers.openai-summarizer.rule=Host(`${SERVERNAME}`)"
       # Set TRAEFIK_TLS_CERT_RESOLVER to the name of your Traefik ACME resolver (e.g. "myresolver" for Let's Encrypt).
       # Leave it empty to disable ACME and use a certificate configured directly on Traefik (e.g. a local CA cert).
@@ -65,8 +66,8 @@ services:
   redis:
     image: redis:7-alpine
     env_file: .env
-    sysctls:
-      - vm.overcommit_memory=1
+    # sysctls:
+      # - vm.overcommit_memory=1
     command:
       - sh
       - -c
